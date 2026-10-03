@@ -70,7 +70,7 @@ const steps = [...document.querySelectorAll('[data-step]')];
 const wordStory = document.querySelector('.word-story');
 // Keep a single readable heading for assistive technology while animating its letters.
 wordStory.setAttribute('aria-label', wordStory.textContent.trim());
-[...wordStory.children].forEach(word => {
+[...wordStory.querySelectorAll('.accent-word')].forEach(word => {
   const letters = [...word.textContent].map(character => {
     const letter = document.createElement('span');
     letter.className = 'story-letter';
@@ -80,7 +80,7 @@ wordStory.setAttribute('aria-label', wordStory.textContent.trim());
   word.replaceChildren(...letters);
   word.setAttribute('aria-hidden', 'true');
 });
-const storyLetters = [...wordStory.querySelectorAll('.story-letter')];
+const storyLetters = [...wordStory.querySelectorAll('.accent-word .story-letter')];
 const gallery = document.querySelector('.team-gallery');
 const navLinks = [...navigation.querySelectorAll('a')];
 const sections = navLinks.map(link => document.querySelector(link.getAttribute('href')));

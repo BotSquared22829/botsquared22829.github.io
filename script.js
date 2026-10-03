@@ -160,14 +160,19 @@ function selectChapter(index) {
 
 function measure() {
   const y = window.scrollY;
+  const videoBounds = heroVideo.getBoundingClientRect();
+  // Typography and offsets share the video's native coordinate space on every screen.
+  const videoScale = videoBounds.width / 1280;
+  hero.style.setProperty('--scene-unit', `${videoScale}px`);
   geometry = {
     header: parseFloat(getComputedStyle(root).getPropertyValue('--header')),
     heroTop: hero.getBoundingClientRect().top + y,
     heroRange: Math.max(1, hero.offsetHeight - heroStage.offsetHeight),
     heroStageHeight: heroStage.offsetHeight,
     heroEntryRange: heroStage.offsetHeight * heroEntryScreens,
-    videoLeft: heroVideo.getBoundingClientRect().left,
-    videoWidth: heroVideo.getBoundingClientRect().width,
+    videoLeft: videoBounds.left,
+    videoWidth: videoBounds.width,
+    videoScale,
     nameLeft: heroTeamName.getBoundingClientRect().left,
     nameWidth: heroTeamName.getBoundingClientRect().width,
     robotTop: robot.getBoundingClientRect().top + y,
@@ -216,7 +221,7 @@ function render(time) {
     const spinEase = spinReveal * spinReveal * (3 - 2 * spinReveal);
     hero.style.setProperty('--name-mask', `${(1 - nameReveal) * 100}%`);
     hero.style.setProperty('--name-opacity', String(clamp(nameReveal * 4)));
-    hero.style.setProperty('--name-rise', `${-spinEase * 24}px`);
+    hero.style.setProperty('--name-rise', `${-spinEase * 24 * geometry.videoScale}px`);
     hero.style.setProperty('--number-opacity', String(spinEase));
     heroContent.inert = entrance > 0.63;
   }

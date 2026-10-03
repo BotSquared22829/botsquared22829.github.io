@@ -62,18 +62,24 @@ const hero = document.querySelector('.hero');
 const heroStage = document.querySelector('.hero-stage');
 const heroContent = document.querySelector('.hero-content');
 const heroVideo = document.querySelector('#hero-video');
+const heroTeamName = document.querySelector('.hero-team-name');
 const heroCutout = document.querySelector('.hero-robot-cutout');
 const cutoutContext = heroCutout.getContext('2d', { willReadFrequently: true });
 let cutoutTime = -1;
+let robotLeftEdge = null;
 function drawHeroCutout() {
   if (motionPreference.matches || !cutoutContext || heroVideo.readyState < 2 || cutoutTime === heroVideo.currentTime) return;
   try {
     cutoutContext.drawImage(heroVideo, 0, 0, heroCutout.width, heroCutout.height);
     const frame = cutoutContext.getImageData(0, 0, heroCutout.width, heroCutout.height);
+    let leftEdge = heroCutout.width;
     // The render uses pure black. Remove that backdrop so the robot can occlude text.
     for (let i = 0; i < frame.data.length; i += 4) {
-      frame.data[i + 3] = Math.min(255, Math.max(frame.data[i], frame.data[i + 1], frame.data[i + 2]) * 32);
+      const brightness = Math.max(frame.data[i], frame.data[i + 1], frame.data[i + 2]);
+      frame.data[i + 3] = Math.min(255, brightness * 32);
+      if (brightness > 12) leftEdge = Math.min(leftEdge, (i / 4) % heroCutout.width);
     }
+    robotLeftEdge = leftEdge < heroCutout.width ? leftEdge / heroCutout.width : null;
     cutoutContext.putImageData(frame, 0, 0);
     cutoutTime = heroVideo.currentTime;
     heroCutout.parentElement.classList.add('cutout-ready');
@@ -160,6 +166,10 @@ function measure() {
     heroRange: Math.max(1, hero.offsetHeight - heroStage.offsetHeight),
     heroStageHeight: heroStage.offsetHeight,
     heroEntryRange: heroStage.offsetHeight * heroEntryScreens,
+    videoLeft: heroVideo.getBoundingClientRect().left,
+    videoWidth: heroVideo.getBoundingClientRect().width,
+    nameLeft: heroTeamName.getBoundingClientRect().left,
+    nameWidth: heroTeamName.getBoundingClientRect().width,
     robotTop: robot.getBoundingClientRect().top + y,
     robotRange: Math.max(1, robot.offsetHeight - robotStage.offsetHeight),
     wordTop: wordStory.getBoundingClientRect().top + y,
@@ -198,7 +208,10 @@ function render(time) {
     hero.style.setProperty('--title-opacity', String(clamp(1 - entrance * 1.6)));
     hero.style.setProperty('--photo-y', `${(1 - entrance) * geometry.heroStageHeight * 0.48}px`);
     hero.style.setProperty('--hint-opacity', String(clamp(1 - entrance * 2)));
-    const nameReveal = clamp((heroVideo.currentTime - 0.15) / (videoTravelEnd - 0.15));
+    // Reveal directly behind the robot's silhouette, leaving an eight-pixel gap.
+    const revealEdge = geometry.videoLeft + (robotLeftEdge ?? 0) * geometry.videoWidth - 8;
+    const nameReveal = heroVideo.currentTime >= videoTravelEnd ? 1
+      : clamp((revealEdge - geometry.nameLeft) / Math.max(1, geometry.nameWidth));
     const spinReveal = clamp((heroVideo.currentTime - videoSpinStart) / 0.75);
     const spinEase = spinReveal * spinReveal * (3 - 2 * spinReveal);
     hero.style.setProperty('--name-mask', `${(1 - nameReveal) * 100}%`);

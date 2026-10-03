@@ -18,6 +18,6 @@ Team, outreach, sponsor, and contact details are based on the supplied website s
 
 The organization site repository is `BotSquared22829/botsquared22829.github.io` and its address is https://botsquared22829.github.io/.
 
-The `Publish website` workflow checks and builds each push to `main`, then publishes when the repository is public and Pages is configured to use GitHub Actions. `npm run build` produces `_site/` containing only the landing page and its referenced assets. Local server code and robot rendering scripts are excluded from the published website.
+The `Publish website` workflow checks and builds each push to `main`, then publishes when the repository is public and Pages is configured to use GitHub Actions. `npm run build` produces `_site/` containing only the landing page and its referenced assets. Content-based CSS and JavaScript URL versions prevent browsers from reusing stale code after updates. Local server code and robot rendering scripts are excluded from the published website.
 
 GitHub Free requires a public repository for Pages. In repository Settings → Pages, select **GitHub Actions** as the source. The workflow can also be run manually from the Actions tab.

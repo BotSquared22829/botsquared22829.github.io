@@ -62,6 +62,28 @@ const hero = document.querySelector('.hero');
 const heroStage = document.querySelector('.hero-stage');
 const heroContent = document.querySelector('.hero-content');
 const heroVideo = document.querySelector('#hero-video');
+const heroCutout = document.querySelector('.hero-robot-cutout');
+const cutoutContext = heroCutout.getContext('2d', { willReadFrequently: true });
+let cutoutTime = -1;
+function drawHeroCutout() {
+  if (motionPreference.matches || !cutoutContext || heroVideo.readyState < 2 || cutoutTime === heroVideo.currentTime) return;
+  try {
+    cutoutContext.drawImage(heroVideo, 0, 0, heroCutout.width, heroCutout.height);
+    const frame = cutoutContext.getImageData(0, 0, heroCutout.width, heroCutout.height);
+    // The render uses pure black. Remove that backdrop so the robot can occlude text.
+    for (let i = 0; i < frame.data.length; i += 4) {
+      frame.data[i + 3] = Math.min(255, Math.max(frame.data[i], frame.data[i + 1], frame.data[i + 2]) * 32);
+    }
+    cutoutContext.putImageData(frame, 0, 0);
+    cutoutTime = heroVideo.currentTime;
+    heroCutout.parentElement.classList.add('cutout-ready');
+  } catch {
+    // Keep the original video visible if the browser cannot read its pixels.
+    heroCutout.parentElement.classList.remove('cutout-ready');
+  }
+}
+heroVideo.addEventListener('loadeddata', drawHeroCutout);
+heroVideo.addEventListener('seeked', drawHeroCutout);
 const robot = document.querySelector('.robot-section');
 const robotStage = document.querySelector('.robot-stage');
 const panels = [...document.querySelectorAll('[data-chapter]')];
@@ -99,6 +121,8 @@ const heroEntryScreens = 0.6;
 // Frame 68 is the right-hand stop. Give the initial travel extra scroll distance.
 const videoTravelEnd = 67 / 24;
 const videoTravelWeight = 1.7;
+// The robot holds at the right edge through frame 80, then starts its turn.
+const videoSpinStart = 80 / 24;
 
 function seekHeroVideo() {
   if (motionPreference.matches || !Number.isFinite(heroVideo.duration) || heroVideo.readyState < 2 || heroVideo.seeking) return;
@@ -114,6 +138,7 @@ function seekHeroVideo() {
 heroVideo.addEventListener('loadedmetadata', requestRender);
 heroVideo.addEventListener('loadeddata', seekHeroVideo);
 heroVideo.addEventListener('seeked', seekHeroVideo);
+heroVideo.addEventListener('seeked', requestRender);
 
 function selectChapter(index) {
   if (index === chapter) return;
@@ -173,6 +198,13 @@ function render(time) {
     hero.style.setProperty('--title-opacity', String(clamp(1 - entrance * 1.6)));
     hero.style.setProperty('--photo-y', `${(1 - entrance) * geometry.heroStageHeight * 0.48}px`);
     hero.style.setProperty('--hint-opacity', String(clamp(1 - entrance * 2)));
+    const nameReveal = clamp((heroVideo.currentTime - 0.15) / (videoTravelEnd - 0.15));
+    const spinReveal = clamp((heroVideo.currentTime - videoSpinStart) / 0.75);
+    const spinEase = spinReveal * spinReveal * (3 - 2 * spinReveal);
+    hero.style.setProperty('--name-mask', `${(1 - nameReveal) * 100}%`);
+    hero.style.setProperty('--name-opacity', String(clamp(nameReveal * 4)));
+    hero.style.setProperty('--name-rise', `${-spinEase * 24}px`);
+    hero.style.setProperty('--number-opacity', String(spinEase));
     heroContent.inert = entrance > 0.63;
   }
   if (animated) {

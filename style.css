@@ -55,8 +55,15 @@ h2 { font-size: clamp(44px, 5.3vw, 78px); font-weight: 650; letter-spacing: -.05
 .hero-motion .hero { height: 408dvh; }
 .hero-motion .hero-stage { height: calc(100dvh - var(--header)); min-height: 0; padding-top: 65px; position: sticky; top: var(--header); }
 .hero-motion .hero-content { transform: translate3d(0, var(--title-y, 0px), 0) scale(var(--title-scale, 1)); opacity: var(--title-opacity, 1); }
-.hero-motion .hero-photo { position: absolute; inset: 0; width: 100%; max-width: none; height: 100%; margin: 0; transform: translate3d(0, var(--photo-y, 48svh), 0); border-radius: 0; }
-.hero-motion .hero-photo video { position: absolute; top: 50%; left: 50%; width: min(90%, 1280px, calc((100dvh - var(--header)) * 1.6)); height: auto; aspect-ratio: 16 / 9; transform: translate(-50%, -50%); }
+.hero-motion .hero-photo { position: absolute; inset: 0; width: 100%; max-width: none; height: 100%; margin: 0; transform: translate3d(0, var(--photo-y, 48svh), 0); border-radius: 0; background: transparent; z-index: 3; pointer-events: none; }
+.hero-motion .hero-photo video, .hero-motion .hero-robot-cutout { position: absolute; top: 50%; left: 50%; width: min(90%, 1280px, calc((100dvh - var(--header)) * 1.6)); height: auto; aspect-ratio: 16 / 9; transform: translate(-50%, -50%); }
+.hero-robot-cutout { display: none; }
+.hero-motion .hero-photo.cutout-ready video { opacity: 0; }
+.hero-motion .cutout-ready .hero-robot-cutout { display: block; }
+.hero-identity { display: none; }
+.hero-motion .hero-identity { display: flex; flex-direction: column; align-items: center; position: absolute; top: 50%; left: 0; right: 0; z-index: 2; pointer-events: none; transform: translateY(-50%); }
+.hero-team-name { font-size: clamp(48px, 12vw, 164px); font-weight: 680; letter-spacing: -.055em; line-height: 1.1; clip-path: inset(0 var(--name-mask, 100%) 0 0); opacity: var(--name-opacity, 0); transform: translateY(var(--name-rise, 0px)); }
+.hero-team-number { margin-top: 10px; color: var(--red); font-size: clamp(20px, 2.5vw, 32px); font-weight: 550; letter-spacing: .18em; line-height: 1; opacity: var(--number-opacity, 0); transform: translateY(var(--name-rise, 0px)); }
 .hero-outro { display: none; }
 .motion-ready .hero-photo figcaption { opacity: var(--caption-opacity, 0); transform: translate3d(0, var(--caption-y, 20px), 0); }
 .motion-ready .scroll-hint { display: flex; align-items: center; gap: 10px; position: absolute; bottom: 23px; left: 50%; transform: translateX(-50%); color: white; font-size: 8px; letter-spacing: 1.5px; opacity: var(--hint-opacity, 1); z-index: 3; text-shadow: 0 1px 8px #000; }

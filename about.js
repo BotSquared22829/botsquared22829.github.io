@@ -26,9 +26,9 @@ if (!introMotion.matches) {
   }
   introMotion.addEventListener('change', onIntroMotionChange);
   window.addEventListener('pagehide', unlockIntroScroll);
-  // The last intro word finishes at 8.45s + .65s delay + .2s fade.
+  // The last intro word finishes at 6.45s + .65s delay + .2s fade.
   // Schedule cleanup before setting up the animation so failures cannot trap scrolling.
-  window.setTimeout(unlockIntroScroll, 9300);
+  window.setTimeout(unlockIntroScroll, 7300);
 
   const groups = [];
   document.querySelectorAll('[data-stream]').forEach(element => {
@@ -66,7 +66,7 @@ if (!introMotion.matches) {
         const x = (positions[index].left - left) / width;
         const y = (positions[index].top - top) / height;
         // The opening diagonal wave adapts to the actual text wrapping.
-        token.style.setProperty('--stream-delay', `${(isParagraph ? 8.45 : 7.7) + (x * 0.35 + y * 0.65) * 0.65}s`);
+        token.style.setProperty('--stream-delay', `${(isParagraph ? 6.45 : 5.7) + (x * 0.35 + y * 0.65) * 0.65}s`);
       });
     });
   }
@@ -82,6 +82,7 @@ if (!introMotion.matches) {
 
   function updateScrollStory() {
     if (!hasScrolled || !introComplete) return;
+    document.body.classList.add('story-has-scrolled');
     const stage = document.querySelector('.thinking-stage');
     const headerHeight = document.querySelector('.site-header').getBoundingClientRect().height;
     const distance = Math.max(0, headerHeight - stage.getBoundingClientRect().top);
@@ -117,7 +118,7 @@ if (!introMotion.matches) {
   window.setTimeout(() => {
     introComplete = true;
     updateScrollStory();
-  }, 7700);
+  }, 5700);
   layOutReveal();
   document.fonts.ready.then(layOutReveal);
   window.addEventListener('resize', () => {

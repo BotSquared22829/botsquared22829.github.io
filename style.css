@@ -70,17 +70,19 @@ h2 { font-size: clamp(44px, 5.3vw, 78px); font-weight: 650; letter-spacing: -.05
 .team-section { padding: 110px 0; text-align: center; }
 .team-section > .eyebrow { color: var(--red); margin-bottom: 30px; }
 .word-story { max-width: 1020px; margin: auto; font-size: clamp(42px, 5.4vw, 78px); }
-.word-story span { color: var(--ink); transition: color .5s ease; }
-.motion-ready .word-story span { color: #91919a; }
-.motion-ready .word-story span.is-lit { color: var(--ink); }
-.word-story .accent-word, .motion-ready .word-story .accent-word.is-lit { color: var(--red); }
+.word-story > span { white-space: nowrap; }
+.story-letter { color: var(--ink); transition: color .16s ease, text-shadow .16s ease; }
+.word-story .accent-word, .accent-word .story-letter { color: var(--red); }
+.motion-ready .word-story .story-letter { color: #65656d; }
+.motion-ready .word-story .story-letter.is-lit { color: var(--ink); }
+.motion-ready .accent-word .story-letter.is-lit { color: var(--red); text-shadow: 0 0 18px #ff3b4826; }
 .section-description { max-width: 600px; margin: 30px auto 0; font-size: 19px; line-height: 1.65; color: var(--muted); letter-spacing: -.3px; }
-.team-gallery { position: relative; text-align: left; margin: 60px auto 0; padding: 0 7% 55px 0; max-width: 1050px; }
+.team-gallery { position: relative; text-align: left; width: 90%; margin: 60px auto 0; padding: 0 7% 55px 0; max-width: 945px; }
 .team-main-photo { width: 78%; border-radius: 28px; overflow: hidden; position: relative; }
-.team-main-photo img { width: 100%; aspect-ratio: 1.4; object-fit: cover; }
+.team-main-photo img { width: 100%; height: auto; aspect-ratio: .84; object-fit: cover; }
 .team-main-photo figcaption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, #000b); padding: 65px 26px 26px; color: white; font-size: 16px; font-weight: 550; }
 .team-detail-photo { position: absolute; right: 0; width: 37%; bottom: 0; border: 8px solid var(--paper); border-radius: 25px; overflow: hidden; box-shadow: 0 25px 50px #00000012; }
-.team-detail-photo img { width: 100%; aspect-ratio: 1.2; object-fit: cover; }
+.team-detail-photo img { width: 100%; height: auto; aspect-ratio: .69; object-fit: cover; }
 .team-detail-photo figcaption { background: var(--paper); font-size: 11px; color: var(--muted); padding: 17px 15px; }
 .motion-ready .team-main-photo img { transform: scale(1.06) translate3d(0, var(--team-parallax, 0px), 0); }
 .team-values { display: flex; justify-content: center; gap: 35px; margin-top: 48px; color: var(--muted); font-size: 13px; }

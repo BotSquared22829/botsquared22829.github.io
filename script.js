@@ -67,8 +67,20 @@ const robotStage = document.querySelector('.robot-stage');
 const panels = [...document.querySelectorAll('[data-chapter]')];
 const frames = [...document.querySelectorAll('[data-frame]')];
 const steps = [...document.querySelectorAll('[data-step]')];
-const words = [...document.querySelectorAll('.word-story span')];
 const wordStory = document.querySelector('.word-story');
+// Keep a single readable heading for assistive technology while animating its letters.
+wordStory.setAttribute('aria-label', wordStory.textContent.trim());
+[...wordStory.children].forEach(word => {
+  const letters = [...word.textContent].map(character => {
+    const letter = document.createElement('span');
+    letter.className = 'story-letter';
+    letter.textContent = character;
+    return letter;
+  });
+  word.replaceChildren(...letters);
+  word.setAttribute('aria-hidden', 'true');
+});
+const storyLetters = [...wordStory.querySelectorAll('.story-letter')];
 const gallery = document.querySelector('.team-gallery');
 const navLinks = [...navigation.querySelectorAll('a')];
 const sections = navLinks.map(link => document.querySelector(link.getAttribute('href')));
@@ -170,7 +182,7 @@ function render(time) {
     const localProgress = clamp((robotProgress - nextChapter / 3) * 3);
     robot.style.setProperty('--robot-zoom', String(1 + localProgress * 0.035));
     const wordProgress = clamp((y + vh * 0.86 - geometry.wordTop) / (vh * 0.42));
-    words.forEach((word, index) => word.classList.toggle('is-lit', wordProgress > index / words.length));
+    storyLetters.forEach((letter, index) => letter.classList.toggle('is-lit', wordProgress > index / storyLetters.length));
     const galleryProgress = clamp((y + vh - geometry.galleryTop) / (vh + geometry.galleryHeight));
     gallery.style.setProperty('--team-parallax', `${(galleryProgress - 0.5) * 24}px`);
   }
@@ -202,6 +214,7 @@ function configureMotion() {
   root.classList.toggle('hero-motion', heroAnimated);
   heroContent.inert = false;
   if (!animated) frames.forEach(frame => frame.removeAttribute('aria-hidden'));
+  if (!animated) storyLetters.forEach(letter => letter.classList.add('is-lit'));
   // A preference change must expose every section immediately.
   if (motionPreference.matches) reveals.forEach(element => element.classList.add('is-visible'));
   chapter = -1;

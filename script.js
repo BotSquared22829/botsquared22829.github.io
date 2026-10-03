@@ -181,7 +181,7 @@ function render(time) {
     robot.style.setProperty('--robot-progress', String(robotProgress));
     const localProgress = clamp((robotProgress - nextChapter / 3) * 3);
     robot.style.setProperty('--robot-zoom', String(1 + localProgress * 0.035));
-    const wordProgress = clamp((y + vh * 0.86 - geometry.wordTop) / (vh * 0.42));
+    const wordProgress = clamp((y + vh * 0.86 - geometry.wordTop) / (vh * 0.72));
     storyLetters.forEach((letter, index) => letter.classList.toggle('is-lit', wordProgress > index / storyLetters.length));
     const galleryProgress = clamp((y + vh - geometry.galleryTop) / (vh + geometry.galleryHeight));
     gallery.style.setProperty('--team-parallax', `${(galleryProgress - 0.5) * 24}px`);

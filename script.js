@@ -1,4 +1,10 @@
 const root = document.documentElement;
+const opensAtHero = () => !location.hash || location.hash === '#' || location.hash === '#main';
+history.scrollRestoration = opensAtHero() ? 'manual' : 'auto';
+if (opensAtHero()) {
+  // Reloading the home page starts the story instead of restoring a later video frame.
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+}
 root.classList.add('js');
 const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
 const shortScreen = window.matchMedia('(max-height: 650px), (max-width: 380px) and (max-height: 740px)');
@@ -216,6 +222,19 @@ steps.forEach((button, index) => {
 window.addEventListener('scroll', requestRender, { passive: true });
 window.addEventListener('resize', configureMotion, { passive: true });
 window.addEventListener('load', () => { measure(); requestRender(); });
+window.addEventListener('pageshow', event => {
+  if (event.persisted) return;
+  if (opensAtHero()) {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    videoProgress = 0;
+    seekHeroVideo();
+  } else {
+    // Sticky scene heights are finalized now, so section links land in the right place.
+    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    target?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }
+  configureMotion();
+});
 motionPreference.addEventListener('change', configureMotion);
 shortScreen.addEventListener('change', configureMotion);
 document.fonts.ready.then(() => { measure(); requestRender(); });

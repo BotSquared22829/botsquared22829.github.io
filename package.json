@@ -1,0 +1,12 @@
+{
+  "name": "botsquared-website",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "check": "node --check script.js && node --check server.mjs && node --check scripts/build-site.mjs",
+    "build": "node scripts/build-site.mjs"
+  }
+}

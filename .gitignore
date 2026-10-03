@@ -1,0 +1,7 @@
+.DS_Store
+node_modules/
+_site/
+
+# Local Blender projects, render frames, previews, and intermediate files.
+/output/robot-scene/
+__pycache__/

@@ -182,7 +182,13 @@ function render(time) {
     const localProgress = clamp((robotProgress - nextChapter / 3) * 3);
     robot.style.setProperty('--robot-zoom', String(1 + localProgress * 0.035));
     const wordProgress = clamp((y + vh * 0.86 - geometry.wordTop) / (vh * 0.72));
-    storyLetters.forEach((letter, index) => letter.classList.toggle('is-lit', wordProgress > index / storyLetters.length));
+    const leadingLetter = wordProgress > 0 && wordProgress < 1
+      ? Math.ceil(wordProgress * storyLetters.length) - 1
+      : -1;
+    storyLetters.forEach((letter, index) => {
+      letter.classList.toggle('is-lit', wordProgress > index / storyLetters.length);
+      letter.classList.toggle('is-leading', index === leadingLetter);
+    });
     const galleryProgress = clamp((y + vh - geometry.galleryTop) / (vh + geometry.galleryHeight));
     gallery.style.setProperty('--team-parallax', `${(galleryProgress - 0.5) * 24}px`);
   }
@@ -214,7 +220,10 @@ function configureMotion() {
   root.classList.toggle('hero-motion', heroAnimated);
   heroContent.inert = false;
   if (!animated) frames.forEach(frame => frame.removeAttribute('aria-hidden'));
-  if (!animated) storyLetters.forEach(letter => letter.classList.add('is-lit'));
+  if (!animated) storyLetters.forEach(letter => {
+    letter.classList.add('is-lit');
+    letter.classList.remove('is-leading');
+  });
   // A preference change must expose every section immediately.
   if (motionPreference.matches) reveals.forEach(element => element.classList.add('is-visible'));
   chapter = -1;

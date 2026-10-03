@@ -1,6 +1,35 @@
 // The opening is timed; scrolling advances the text inside a pinned stage.
 // All copy is local and editable in about.html.
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+const introMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+if (!introMotion.matches) {
+  const scrollKeys = ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '];
+  const preventIntroScroll = event => {
+    if (event.type === 'keydown' && !scrollKeys.includes(event.key)) return;
+    if (event.type === 'wheel' && event.ctrlKey) return;
+    event.preventDefault();
+  };
+  document.documentElement.classList.add('intro-scroll-locked');
+  window.addEventListener('wheel', preventIntroScroll, { passive: false });
+  window.addEventListener('touchmove', preventIntroScroll, { passive: false });
+  window.addEventListener('keydown', preventIntroScroll);
+
+  function unlockIntroScroll() {
+    document.documentElement.classList.remove('intro-scroll-locked');
+    window.removeEventListener('wheel', preventIntroScroll);
+    window.removeEventListener('touchmove', preventIntroScroll);
+    window.removeEventListener('keydown', preventIntroScroll);
+    introMotion.removeEventListener('change', onIntroMotionChange);
+    window.removeEventListener('pagehide', unlockIntroScroll);
+  }
+  function onIntroMotionChange(event) {
+    if (event.matches) unlockIntroScroll();
+  }
+  introMotion.addEventListener('change', onIntroMotionChange);
+  window.addEventListener('pagehide', unlockIntroScroll);
+  // The last intro word finishes at 8.45s + .65s delay + .2s fade.
+  // Schedule cleanup before setting up the animation so failures cannot trap scrolling.
+  window.setTimeout(unlockIntroScroll, 9300);
+
   const groups = [];
   document.querySelectorAll('[data-stream]').forEach(element => {
     const tokens = [];
@@ -96,3 +125,48 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     updateScrollStory();
   }, { passive: true });
 }
+
+// Keep each photo and its description together as the awards stage pins.
+// Short viewports and reduced motion use the same chapters in normal flow.
+const awards = document.querySelector('.about-awards');
+const awardsStage = awards.querySelector('.awards-stage');
+const awardChapters = [...awards.querySelectorAll('.award-chapter')];
+const awardsMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let awardsPinned = false;
+let awardsFramePending = false;
+
+function updateAwards() {
+  const headerHeight = document.querySelector('.site-header').getBoundingClientRect().height;
+  const travel = Math.max(1, awards.offsetHeight - awardsStage.offsetHeight);
+  const progress = Math.max(0, Math.min(1, (headerHeight - awards.getBoundingClientRect().top) / travel));
+  const active = Math.min(awardChapters.length - 1, Math.floor(progress * awardChapters.length));
+  awardChapters.forEach((chapter, index) => {
+    chapter.classList.toggle('is-active', awardsPinned && index === active);
+    if (awardsPinned && index !== active) chapter.setAttribute('aria-hidden', 'true');
+    else chapter.removeAttribute('aria-hidden');
+  });
+}
+
+function layoutAwards() {
+  const styles = getComputedStyle(awardsStage);
+  const neededHeight = awards.querySelector('h2').offsetHeight
+    + Math.max(...awardChapters.map(chapter => chapter.offsetHeight))
+    + parseFloat(styles.rowGap) + parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+  const availableHeight = window.innerHeight - document.querySelector('.site-header').offsetHeight;
+  awardsPinned = !awardsMotion.matches && neededHeight <= availableHeight;
+  awards.classList.toggle('awards-scroll-ready', awardsPinned);
+  updateAwards();
+}
+
+window.addEventListener('scroll', () => {
+  if (awardsFramePending || !awardsPinned) return;
+  awardsFramePending = true;
+  requestAnimationFrame(() => {
+    awardsFramePending = false;
+    updateAwards();
+  });
+}, { passive: true });
+window.addEventListener('resize', layoutAwards, { passive: true });
+awardsMotion.addEventListener('change', layoutAwards);
+document.fonts.ready.then(layoutAwards);
+layoutAwards();

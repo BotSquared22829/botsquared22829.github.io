@@ -8,30 +8,7 @@ if (opensAtHero()) {
 root.classList.add('js');
 const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
 const shortScreen = window.matchMedia('(max-height: 650px), (max-width: 380px) and (max-height: 740px)');
-const menuButton = document.querySelector('.menu-toggle');
 const navigation = document.querySelector('#navigation');
-menuButton.hidden = false;
-
-function closeMenu() {
-  navigation.classList.remove('is-open');
-  menuButton.setAttribute('aria-expanded', 'false');
-  menuButton.querySelector('span').textContent = '+';
-}
-menuButton.addEventListener('click', () => {
-  const open = menuButton.getAttribute('aria-expanded') !== 'true';
-  navigation.classList.toggle('is-open', open);
-  menuButton.setAttribute('aria-expanded', String(open));
-  menuButton.querySelector('span').textContent = open ? '−' : '+';
-});
-navigation.addEventListener('click', (event) => {
-  if (event.target.closest('a')) closeMenu();
-});
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && menuButton.getAttribute('aria-expanded') === 'true') {
-    closeMenu();
-    menuButton.focus();
-  }
-});
 
 const reveals = [...document.querySelectorAll('[data-reveal]')];
 const revealObserver = new IntersectionObserver((entries) => {
@@ -63,6 +40,7 @@ const heroStage = document.querySelector('.hero-stage');
 const heroContent = document.querySelector('.hero-content');
 const heroVideo = document.querySelector('#hero-video');
 const heroTeamName = document.querySelector('.hero-team-name');
+const heroLearnMore = document.querySelector('.hero-learn-more');
 const heroCutout = document.querySelector('.hero-robot-cutout');
 const cutoutContext = heroCutout.getContext('2d', { willReadFrequently: true });
 let cutoutTime = -1;
@@ -110,7 +88,7 @@ wordStory.setAttribute('aria-label', wordStory.textContent.trim());
 });
 const storyLetters = [...wordStory.querySelectorAll('.accent-word .story-letter')];
 const gallery = document.querySelector('.team-gallery');
-const navLinks = [...navigation.querySelectorAll('a')];
+const navLinks = [...navigation.querySelectorAll('a[href^="#"]')];
 const sections = navLinks.map(link => document.querySelector(link.getAttribute('href')));
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 let frameRequest = 0;
@@ -219,10 +197,17 @@ function render(time) {
       : clamp((revealEdge - geometry.nameLeft) / Math.max(1, geometry.nameWidth));
     const spinReveal = clamp((heroVideo.currentTime - videoSpinStart) / 0.75);
     const spinEase = spinReveal * spinReveal * (3 - 2 * spinReveal);
+    // Let the number finish its reveal, then leave a short beat before the button.
+    const learnMoreReveal = clamp((heroVideo.currentTime - videoSpinStart - 0.95) / 0.65);
+    const learnMoreEase = learnMoreReveal * learnMoreReveal * (3 - 2 * learnMoreReveal);
     hero.style.setProperty('--name-mask', `${(1 - nameReveal) * 100}%`);
     hero.style.setProperty('--name-opacity', String(clamp(nameReveal * 4)));
     hero.style.setProperty('--name-rise', `${-spinEase * 24 * geometry.videoScale}px`);
     hero.style.setProperty('--number-opacity', String(spinEase));
+    hero.style.setProperty('--learn-more-opacity', String(learnMoreEase));
+    hero.style.setProperty('--learn-more-y', `${(1 - learnMoreEase) * 24 * geometry.videoScale}px`);
+    heroLearnMore.classList.toggle('is-revealed', learnMoreEase > 0);
+    heroLearnMore.inert = learnMoreEase < 0.95;
     heroContent.inert = entrance > 0.63;
   }
   if (animated) {

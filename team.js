@@ -215,3 +215,181 @@ updateLayout();
 reducedMotion.addEventListener('change', () => {
   if (reducedMotion.matches) settleSurface();
 });
+
+// Scroll rotates two adjacent faces of an invisible rectangular block.
+// The first and last portions hold each message still before the page continues.
+const unity = document.querySelector('.team-unity');
+const unityStage = unity.querySelector('.team-unity-stage');
+let unityFramePending = false;
+let unityConnectionProgress = 0;
+
+function updateUnity() {
+  unityFramePending = false;
+  if (reducedMotion.matches) return;
+  const headerHeight = document.querySelector('.site-header').getBoundingClientRect().height;
+  const travel = Math.max(1, unity.offsetHeight - unityStage.offsetHeight);
+  const progress = Math.max(0, Math.min(1, (headerHeight - unity.getBoundingClientRect().top) / travel));
+  const turn = Math.max(0, Math.min(1, (progress - 0.15) / 0.6));
+  const eased = turn * turn * (3 - 2 * turn);
+  unityConnectionProgress = Math.max(0, Math.min(1, (eased - 0.55) / 0.45));
+  unity.style.setProperty('--unity-angle', `${eased * 90}deg`);
+  unity.style.setProperty('--unity-divided-opacity', 1 - eased);
+  unity.style.setProperty('--unity-united-opacity', eased);
+  unity.style.setProperty('--hint-opacity', Math.max(0, 1 - progress * 12));
+}
+
+function layoutUnity() {
+  unity.classList.toggle('unity-scroll-ready', !reducedMotion.matches);
+  updateUnity();
+}
+
+window.addEventListener('scroll', () => {
+  if (unityFramePending || reducedMotion.matches) return;
+  unityFramePending = true;
+  requestAnimationFrame(updateUnity);
+}, { passive: true });
+window.addEventListener('resize', layoutUnity, { passive: true });
+reducedMotion.addEventListener('change', layoutUnity);
+layoutUnity();
+
+// Separate particles become a network as the second face comes into view.
+const unityNetwork = unity.querySelector('.team-unity-network');
+let networkWidth = 0;
+let networkHeight = 0;
+let networkDots = [];
+let networkLinks = [];
+let networkFrame = null;
+let networkVisible = false;
+let networkTime = 0;
+let networkPreviousTime = null;
+const networkPointer = { x: 0, y: 0, targetX: 0, targetY: 0, strength: 0, active: false };
+
+unityStage.addEventListener('pointermove', event => {
+  if (event.pointerType === 'touch' || reducedMotion.matches) return;
+  const bounds = unityStage.getBoundingClientRect();
+  networkPointer.targetX = event.clientX - bounds.left;
+  networkPointer.targetY = event.clientY - bounds.top;
+  if (!networkPointer.active) {
+    networkPointer.x = networkPointer.targetX;
+    networkPointer.y = networkPointer.targetY;
+  }
+  networkPointer.active = true;
+}, { passive: true });
+unityStage.addEventListener('pointerleave', () => { networkPointer.active = false; });
+unityStage.addEventListener('pointercancel', () => { networkPointer.active = false; });
+
+function layoutNetwork() {
+  networkPointer.active = false;
+  networkPointer.strength = 0;
+  const bounds = unityStage.getBoundingClientRect();
+  networkWidth = bounds.width;
+  networkHeight = bounds.height;
+  unityNetwork.setAttribute('viewBox', `0 0 ${networkWidth} ${networkHeight}`);
+  const columns = networkWidth < 600 ? 5 : 8;
+  const rows = 6;
+  // Deterministic offsets keep the composition stable through resize.
+  const random = seed => { const value = Math.sin(seed * 127.1 + 311.7) * 43758.5453; return value - Math.floor(value); };
+  networkDots = Array.from({ length: columns * rows }, (_, index) => {
+    const dot = document.createElementNS(svgNamespace, 'circle');
+    dot.setAttribute('r', 1.5 + random(index + 80) * 1.4);
+    return {
+      element: dot,
+      x: ((index % columns) + 0.2 + random(index + 1) * 0.6) / columns * networkWidth,
+      y: (Math.floor(index / columns) + 0.2 + random(index + 30) * 0.6) / rows * networkHeight,
+      phase: random(index + 100) * Math.PI * 2
+    };
+  });
+  const pairs = new Set();
+  networkLinks = [];
+  networkDots.forEach((dot, index) => {
+    networkDots.map((other, target) => ({ target, distance: Math.hypot(dot.x - other.x, dot.y - other.y) }))
+      .filter(other => other.target !== index)
+      .sort((a, b) => a.distance - b.distance).slice(0, 3)
+      .forEach(({ target }) => {
+        const key = [Math.min(index, target), Math.max(index, target)].join('-');
+        if (pairs.has(key)) return;
+        pairs.add(key);
+        const line = document.createElementNS(svgNamespace, 'line');
+        line.setAttribute('stroke', '#ff5964');
+        line.setAttribute('stroke-width', '.8');
+        line.setAttribute('pathLength', '1');
+        line.setAttribute('stroke-dasharray', '1');
+        networkLinks.push({ element: line, from: index, to: target });
+      });
+  });
+  unityNetwork.replaceChildren(...networkLinks.map(link => link.element), ...networkDots.map(dot => dot.element));
+  drawNetwork();
+}
+
+function drawNetwork() {
+  const connected = reducedMotion.matches ? 1 : unityConnectionProgress;
+  const drift = reducedMotion.matches ? 0 : networkTime / 1000;
+  const restless = 1 - connected;
+  const amplitude = Math.min(85, networkWidth * 0.16);
+  const cursorStrength = reducedMotion.matches ? 0 : networkPointer.strength;
+  const cursorRadius = Math.min(300, networkWidth * 0.7);
+  const positions = networkDots.map(dot => {
+    // Blend separate paths so scrolling changes energy without jumping phase.
+    const wildX = (Math.sin(drift * 0.7 + dot.phase) + Math.sin(drift * 0.31 + dot.phase * 2) * 0.35) * amplitude;
+    const wildY = (Math.cos(drift * 0.58 + dot.phase) + Math.sin(drift * 0.43 + dot.phase * 1.7) * 0.35) * amplitude;
+    let x = dot.x + wildX * restless + Math.sin(drift * 0.24 + dot.phase) * 14 * connected;
+    let y = dot.y + wildY * restless + Math.cos(drift * 0.18 + dot.phase) * 17 * connected;
+    const dx = networkPointer.x - x;
+    const dy = networkPointer.y - y;
+    const influence = Math.max(0, 1 - Math.hypot(dx, dy) / cursorRadius);
+    const pull = influence * influence * cursorStrength * (0.55 - connected * 0.3);
+    x += dx * pull + (networkPointer.x / networkWidth - 0.5) * 22 * cursorStrength;
+    y += dy * pull + (networkPointer.y / networkHeight - 0.5) * 22 * cursorStrength;
+    x = Math.max(5, Math.min(networkWidth - 5, x));
+    y = Math.max(5, Math.min(networkHeight - 5, y));
+    dot.element.setAttribute('cx', x);
+    dot.element.setAttribute('cy', y);
+    dot.element.setAttribute('fill', `rgb(${190 + connected * 65}, ${190 - connected * 90}, ${202 - connected * 87})`);
+    dot.element.setAttribute('opacity', '.65');
+    return { x, y };
+  });
+  networkLinks.forEach((link, index) => {
+    const from = positions[link.from];
+    const to = positions[link.to];
+    const reveal = Math.max(0, Math.min(1, (connected - (index % 7) * 0.025) / 0.85));
+    link.element.setAttribute('x1', from.x);
+    link.element.setAttribute('y1', from.y);
+    link.element.setAttribute('x2', to.x);
+    link.element.setAttribute('y2', to.y);
+    link.element.setAttribute('opacity', reveal * 0.32);
+    link.element.setAttribute('stroke-dashoffset', 1 - reveal);
+  });
+}
+
+function animateNetwork(time) {
+  const elapsed = networkPreviousTime === null ? 16 : Math.min(50, time - networkPreviousTime);
+  networkTime += elapsed;
+  networkPreviousTime = time;
+  const follow = 1 - Math.exp(-elapsed / 140);
+  networkPointer.x += (networkPointer.targetX - networkPointer.x) * follow;
+  networkPointer.y += (networkPointer.targetY - networkPointer.y) * follow;
+  networkPointer.strength += ((networkPointer.active ? 1 : 0) - networkPointer.strength) * follow;
+  drawNetwork();
+  networkFrame = requestAnimationFrame(animateNetwork);
+}
+
+function syncNetworkMotion() {
+  if (networkFrame !== null) cancelAnimationFrame(networkFrame);
+  networkFrame = null;
+  networkPreviousTime = null;
+  if (!networkVisible || document.hidden || reducedMotion.matches) {
+    networkPointer.active = false;
+    networkPointer.strength = 0;
+  }
+  if (networkVisible && !document.hidden && !reducedMotion.matches) networkFrame = requestAnimationFrame(animateNetwork);
+  else drawNetwork();
+}
+
+new ResizeObserver(layoutNetwork).observe(unityStage);
+new IntersectionObserver(([entry]) => {
+  networkVisible = entry.isIntersecting;
+  syncNetworkMotion();
+}).observe(unityStage);
+document.addEventListener('visibilitychange', syncNetworkMotion);
+reducedMotion.addEventListener('change', syncNetworkMotion);
+layoutNetwork();

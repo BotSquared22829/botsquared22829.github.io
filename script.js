@@ -208,8 +208,8 @@ function render(time) {
     hero.style.setProperty('--title-opacity', String(clamp(1 - entrance * 1.6)));
     hero.style.setProperty('--photo-y', `${(1 - entrance) * geometry.heroStageHeight * 0.48}px`);
     hero.style.setProperty('--hint-opacity', String(clamp(1 - entrance * 2)));
-    // Reveal directly behind the robot's silhouette, leaving an eight-pixel gap.
-    const revealEdge = geometry.videoLeft + (robotLeftEdge ?? 0) * geometry.videoWidth - 8;
+    // Reveal directly against the robot's silhouette as it moves across the name.
+    const revealEdge = geometry.videoLeft + (robotLeftEdge ?? 0) * geometry.videoWidth;
     const nameReveal = heroVideo.currentTime >= videoTravelEnd ? 1
       : clamp((revealEdge - geometry.nameLeft) / Math.max(1, geometry.nameWidth));
     const spinReveal = clamp((heroVideo.currentTime - videoSpinStart) / 0.75);

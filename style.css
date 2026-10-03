@@ -61,7 +61,7 @@ h2 { font-size: clamp(44px, 5.3vw, 78px); font-weight: 650; letter-spacing: -.05
 .hero-motion .hero-photo.cutout-ready video { opacity: 0; }
 .hero-motion .cutout-ready .hero-robot-cutout { display: block; }
 .hero-identity { display: none; }
-.hero-motion .hero-identity { display: flex; flex-direction: column; align-items: flex-start; position: absolute; top: 42%; left: var(--gutter); z-index: 2; pointer-events: none; transform: translateY(-50%); }
+.hero-motion .hero-identity { display: flex; flex-direction: column; align-items: flex-start; position: absolute; top: 50%; left: var(--gutter); z-index: 2; pointer-events: none; transform: translateY(-50%); }
 .hero-team-name { font-size: clamp(32px, 5vw, 72px); font-weight: 680; letter-spacing: -.055em; line-height: 1.1; clip-path: inset(0 var(--name-mask, 100%) 0 0); opacity: var(--name-opacity, 0); transform: translateY(var(--name-rise, 0px)); }
 .hero-team-number { margin-top: 10px; color: var(--red); font-size: clamp(16px, 1.8vw, 24px); font-weight: 550; letter-spacing: .18em; line-height: 1; opacity: var(--number-opacity, 0); transform: translateY(var(--name-rise, 0px)); }
 .hero-outro { display: none; }

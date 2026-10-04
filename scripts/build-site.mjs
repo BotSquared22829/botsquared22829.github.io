@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.join(root, '_site');
-const pages = ['index.html', 'about.html', 'team.html'];
+const pages = ['index.html', 'about.html', 'team.html', 'robots.html'];
 const documents = await Promise.all(pages.map(file => readFile(path.join(root, file), 'utf8')));
 const assets = [...new Set(documents.flatMap(html => [...html.matchAll(/(?:src|href|poster)="(assets\/[^"?#]+)"/g)].map(match => match[1])))];
 const files = [...pages, 'style.css', 'script.js', 'about.js', 'team.js', ...assets];

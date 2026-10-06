@@ -2,7 +2,7 @@ import bpy,json,time,sys,traceback,shutil
 from pathlib import Path
 OUT=(Path(__file__).resolve().parents[2] / 'output' / 'robot-scene')
 sys.path.insert(0,str(Path(__file__).resolve().parent));from encode_frames import encode_frames
-s=bpy.context.scene; started=time.time(); frames=OUT/'two-motors-frames';frames.mkdir(exist_ok=True)
+s=bpy.context.scene; started=time.time(); frames=OUT/'two-motors-frames';frames.mkdir(parents=True,exist_ok=True)
 try:
  s.render.image_settings.media_type='IMAGE';s.render.image_settings.file_format='PNG';s.render.image_settings.color_mode='RGB';s.render.image_settings.compression=15
  s.render.filepath=str(frames/'robot_');s.render.use_overwrite=False;s.frame_start=1;s.frame_end=144
@@ -11,8 +11,11 @@ try:
   if scene.frame_current==68:
    for f in range(69,81):shutil.copyfile(scene.render.frame_path(frame=68),scene.render.frame_path(frame=f))
  bpy.app.handlers.render_write.append(progress)
- bpy.ops.render.render(animation=True)
- bpy.app.handlers.render_write.remove(progress)
+ try:
+  result=bpy.ops.render.render(animation=True)
+  if 'FINISHED' not in result:raise RuntimeError('Frame rendering was cancelled')
+ finally:
+  bpy.app.handlers.render_write.remove(progress)
  paths=[Path(s.render.frame_path(frame=f)) for f in range(1,145)]
  assert all(p.exists() for p in paths)
  (OUT/'two-motors-render-progress.json').write_text(json.dumps({'stage':'encoding','frames':192,'elapsed_seconds':round(time.time()-started,1)}))

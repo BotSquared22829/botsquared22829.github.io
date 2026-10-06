@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="BotSquared's 2025 Cross-District Challenge robot.">
+  <title>CDC 2025 — BotSquared</title>
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Prevent an intro flash while allowing the page to recover if its script fails to load.
+    document.documentElement.classList.add('detail-pending');
+    window.setTimeout(() => document.documentElement.classList.remove('detail-pending'), 1500);
+  </script>
+</head>
+<body class="robots-page">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner wrap">
+      <a class="brand" href="index.html" aria-label="BotSquared home"><img src="assets/botsquared-logo.png" width="36" height="36" alt=""><span>BotSquared<span class="brand-number">22829</span></span></a>
+      <nav class="simple-navigation" aria-label="Main navigation"><a href="about.html">About</a><a href="team.html">Team</a><a href="robots.html" aria-current="location">Robots</a></nav>
+    </div>
+  </header>
+  <main id="main" class="cdc-content wrap is-initializing" aria-label="CDC 2025 robot" tabindex="-1">
+    <div class="cdc-intro">
+      <div class="cdc-hero">
+        <div class="cdc-title-stack">
+          <div class="cdc-opening">
+            <h1>Cross District Challenge</h1>
+          </div>
+          <section id="firetruck" class="cdc-firetruck" aria-labelledby="firetruck-title" tabindex="-1">
+            <div class="cdc-firetruck-inner"><h2 id="firetruck-title">Fire Truck</h2></div>
+          </section>
+          <p class="cdc-subtitle">2025</p>
+        </div>
+        <a class="cdc-scroll-indicator decode-scroll-indicator" href="#firetruck" aria-label="Scroll to reveal Fire Truck"><span class="decode-scroll-arrow" aria-hidden="true"></span><span>SCROLL</span></a>
+      </div>
+    </div>
+    <section class="cdc-story" aria-labelledby="cdc-story-title">
+      <h2 id="cdc-story-title">Our <span>first</span> robotics competition.</h2>
+      <p class="cdc-description">CDC 2025 was our first robotics competition, and we had a lot to figure out along the way. With Fire Truck, we learned by trying, making mistakes, and working through problems together. Every challenge taught us something new about building a robot and finding our footing as a team.</p>
+    </section>
+    <section class="cdc-story cdc-outcome" aria-labelledby="cdc-outcome-title">
+      <div class="cdc-outcome-copy">
+        <h2 id="cdc-outcome-title">Outcome</h2>
+        <p>We finished CDC 2025 in second place. For our first robotics competition, it was a rewarding result after all the learning and problem-solving along the way. Fire Truck gave us a starting point to build on and the confidence to take on our next challenge.</p>
+      </div>
+      <img class="cdc-outcome-image" src="assets/robot-cdc-2025-cutout.png" width="1086" height="1448" alt="Fire Truck, our CDC 2025 robot, with a silver chassis, omni wheels, and a tall arm with a white claw." loading="lazy" decoding="async">
+    </section>
+  </main>
+  <footer class="site-footer wrap"><a class="footer-brand" href="index.html">BotSquared <span>FTC 22829</span></a><a href="index.html#robots">Back to home <span aria-hidden="true">→</span></a></footer>
+  <script src="cdc-2025.js" defer></script>
+</body>
+</html>

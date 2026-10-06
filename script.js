@@ -7,6 +7,7 @@ if (opensAtHero()) {
 }
 root.classList.add('js');
 const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+let motionReduced = motionPreference.matches;
 const shortScreen = window.matchMedia('(max-height: 650px), (max-width: 380px) and (max-height: 740px)');
 const navigation = document.querySelector('#navigation');
 
@@ -25,11 +26,18 @@ function revealTarget(element) {
   element?.closest('[data-reveal]')?.classList.add('is-visible');
   element?.querySelectorAll('[data-reveal]').forEach(item => item.classList.add('is-visible'));
 }
-function revealHash() {
-  if (location.hash.length > 1) {
-    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-    revealTarget(target);
+function hashTarget() {
+  if (location.hash.length < 2) return null;
+  let id = location.hash.slice(1);
+  try {
+    id = decodeURIComponent(id);
+  } catch {
+    // A pasted URL can contain a literal percent sign; keep the page usable.
   }
+  return document.getElementById(id);
+}
+function revealHash() {
+  revealTarget(hashTarget());
 }
 document.addEventListener('focusin', event => revealTarget(event.target));
 window.addEventListener('hashchange', revealHash);
@@ -44,9 +52,10 @@ const heroLearnMore = document.querySelector('.hero-learn-more');
 const heroCutout = document.querySelector('.hero-robot-cutout');
 const cutoutContext = heroCutout.getContext('2d', { willReadFrequently: true });
 let cutoutTime = -1;
+let heroUnavailable = false;
 let robotLeftEdge = null;
 function drawHeroCutout() {
-  if (motionPreference.matches || !cutoutContext || heroVideo.readyState < 2 || cutoutTime === heroVideo.currentTime) return;
+  if (heroUnavailable || motionReduced || !cutoutContext || heroVideo.readyState < 2 || cutoutTime === heroVideo.currentTime) return;
   try {
     cutoutContext.drawImage(heroVideo, 0, 0, heroCutout.width, heroCutout.height);
     const frame = cutoutContext.getImageData(0, 0, heroCutout.width, heroCutout.height);
@@ -66,6 +75,15 @@ function drawHeroCutout() {
     heroCutout.parentElement.classList.remove('cutout-ready');
   }
 }
+function showHeroFallback() {
+  if (heroUnavailable) return;
+  heroUnavailable = true;
+  heroVideo.poster = 'assets/robot-motion-black-poster.png';
+  heroVideo.setAttribute('aria-label', 'BotSquared robot');
+  heroVideo.parentElement.classList.remove('cutout-ready');
+  configureMotion();
+}
+heroVideo.addEventListener('error', showHeroFallback, true);
 heroVideo.addEventListener('loadeddata', drawHeroCutout);
 heroVideo.addEventListener('seeked', drawHeroCutout);
 const robot = document.querySelector('.robot-section');
@@ -109,7 +127,7 @@ const videoTravelWeight = 1.7;
 const videoSpinStart = 80 / 24;
 
 function seekHeroVideo() {
-  if (motionPreference.matches || !Number.isFinite(heroVideo.duration) || heroVideo.readyState < 2 || heroVideo.seeking) return;
+  if (heroUnavailable || motionReduced || !Number.isFinite(heroVideo.duration) || heroVideo.readyState < 2 || heroVideo.seeking) return;
   // Keep only the latest scroll position while the decoder completes a seek.
   const lastFrame = Math.max(0, heroVideo.duration - 1 / 24);
   const travelEnd = Math.min(videoTravelEnd, lastFrame);
@@ -179,7 +197,7 @@ function render(time) {
   robotProgress += (targetRobot - robotProgress) * smoothing;
   root.style.setProperty('--read-progress', String(clamp(y / geometry.pageRange)));
 
-  if (!motionPreference.matches) {
+  if (!motionReduced) {
     videoProgress = clamp((heroProgress * geometry.heroRange - geometry.heroEntryRange) / (geometry.heroRange - geometry.heroEntryRange));
     seekHeroVideo();
   }
@@ -238,10 +256,10 @@ function render(time) {
 }
 
 function configureMotion() {
-  heroAnimated = !motionPreference.matches;
-  animated = !motionPreference.matches && !shortScreen.matches;
-  heroVideo.controls = motionPreference.matches;
-  if (!motionPreference.matches) {
+  heroAnimated = !motionReduced && !heroUnavailable;
+  animated = !motionReduced && !shortScreen.matches;
+  heroVideo.controls = motionReduced && !heroUnavailable;
+  if (!motionReduced && !heroUnavailable) {
     heroVideo.pause();
     if (heroVideo.preload !== 'auto') {
       heroVideo.preload = 'auto';
@@ -251,7 +269,7 @@ function configureMotion() {
     // Leave a still frame and native playback controls when scroll motion is disabled.
     heroVideo.pause();
   }
-  root.classList.toggle('motion-ready', !motionPreference.matches);
+  root.classList.toggle('motion-ready', !motionReduced);
   root.classList.toggle('hero-motion', heroAnimated);
   heroContent.inert = false;
   if (!animated) frames.forEach(frame => frame.removeAttribute('aria-hidden'));
@@ -260,7 +278,7 @@ function configureMotion() {
     letter.classList.remove('is-leading');
   });
   // A preference change must expose every section immediately.
-  if (motionPreference.matches) reveals.forEach(element => element.classList.add('is-visible'));
+  if (motionReduced) reveals.forEach(element => element.classList.add('is-visible'));
   chapter = -1;
   measure();
   heroProgress = clamp((scrollY + geometry.header - geometry.heroTop) / geometry.heroRange);
@@ -287,12 +305,15 @@ window.addEventListener('pageshow', event => {
     seekHeroVideo();
   } else {
     // Sticky scene heights are finalized now, so section links land in the right place.
-    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-    target?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    hashTarget()?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
   configureMotion();
 });
-motionPreference.addEventListener('change', configureMotion);
+motionPreference.addEventListener('change', event => {
+  motionReduced = event.matches;
+  configureMotion();
+});
 shortScreen.addEventListener('change', configureMotion);
 document.fonts.ready.then(() => { measure(); requestRender(); });
 configureMotion();
+if (heroVideo.error) showHeroFallback();

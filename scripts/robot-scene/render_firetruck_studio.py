@@ -2,7 +2,9 @@
 
 Blender --background --python scripts/robot-scene/render_firetruck_studio.py
 Append -- --final to render the saved scene at delivery resolution.
+Use -- --source /path/to/Robot.glb to choose a CAD export for a new scene.
 """
+import argparse
 import bpy
 import json
 import math
@@ -13,13 +15,20 @@ from mathutils import Vector
 OUT = Path(__file__).resolve().parents[2] / 'output/robot-scene/firetruck-v5'
 OUT.mkdir(parents=True, exist_ok=True)
 BLEND = OUT / 'robot-v5-studio.blend'
-FINAL = '--final' in sys.argv
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--final', action='store_true')
+parser.add_argument('--source', type=Path, default=Path.home() / 'Downloads/Robot V5.glb')
+arguments = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
+FINAL = arguments.final
+SOURCE = arguments.source.expanduser().resolve()
 
 if FINAL:
     bpy.ops.wm.open_mainfile(filepath=str(BLEND))
 else:
+    if not SOURCE.is_file():
+        raise FileNotFoundError(f'CAD export not found: {SOURCE}. Pass -- --source /path/to/Robot.glb')
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    bpy.ops.import_scene.gltf(filepath='/Users/stevenzhang/Downloads/Robot V5.glb')
+    bpy.ops.import_scene.gltf(filepath=str(SOURCE))
     scene = bpy.context.scene
     imported = list(scene.objects)
     meshes = [o for o in imported if o.type == 'MESH']
@@ -127,7 +136,7 @@ else:
     camera_data.ortho_scale = max(span_x*1.32, span_y*4/3*1.26)
     camera_data.clip_end = 100*height
     scene['Source'] = 'Onshape Firetruck Comp 2026 / Robot V5, fine GLB export'
-    scene['Source file'] = '/Users/stevenzhang/Downloads/Robot V5.glb'
+    scene['Source file'] = str(SOURCE)
     scene['Notes'] = 'CAD colors retained; graphite studio floor and four area lights.'
     scene.render.engine = 'CYCLES'
     scene.cycles.samples = 96

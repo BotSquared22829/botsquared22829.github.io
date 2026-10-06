@@ -1,30 +1,48 @@
 // The opening is timed; scrolling advances the text inside a pinned stage.
 // All copy is local and editable in about.html.
 const introMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-if (!introMotion.matches) {
+const introShortScreen = window.matchMedia('(max-height: 500px)');
+if (!introMotion.matches && !introShortScreen.matches) {
   const scrollKeys = ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '];
   const preventIntroScroll = event => {
     if (event.type === 'keydown' && !scrollKeys.includes(event.key)) return;
     if (event.type === 'wheel' && event.ctrlKey) return;
     event.preventDefault();
   };
-  document.documentElement.classList.add('intro-scroll-locked');
-  window.addEventListener('wheel', preventIntroScroll, { passive: false });
-  window.addEventListener('touchmove', preventIntroScroll, { passive: false });
-  window.addEventListener('keydown', preventIntroScroll);
+  // A direct section link should be usable while the offscreen intro finishes.
+  if (!location.hash || location.hash === '#' || location.hash === '#main') {
+    document.documentElement.classList.add('intro-scroll-locked');
+    window.addEventListener('wheel', preventIntroScroll, { passive: false });
+    window.addEventListener('touchmove', preventIntroScroll, { passive: false });
+    window.addEventListener('keydown', preventIntroScroll);
+  }
 
   function unlockIntroScroll() {
     document.documentElement.classList.remove('intro-scroll-locked');
     window.removeEventListener('wheel', preventIntroScroll);
     window.removeEventListener('touchmove', preventIntroScroll);
     window.removeEventListener('keydown', preventIntroScroll);
-    introMotion.removeEventListener('change', onIntroMotionChange);
+    document.removeEventListener('focusin', onIntroFocus);
     window.removeEventListener('pagehide', unlockIntroScroll);
   }
+  function onIntroFocus(event) {
+    if (event.target.id === 'main') unlockIntroScroll();
+  }
   function onIntroMotionChange(event) {
-    if (event.matches) unlockIntroScroll();
+    if (!event.matches) return;
+    unlockIntroScroll();
+    introComplete = true;
+    // Returning to full motion must not restart the introductory text delays.
+    groups.forEach(({ tokens }) => tokens.forEach(token => {
+      token.style.animation = 'none';
+      token.style.opacity = '1';
+      token.style.filter = 'none';
+      token.style.transform = 'none';
+    }));
   }
   introMotion.addEventListener('change', onIntroMotionChange);
+  introShortScreen.addEventListener('change', onIntroMotionChange);
+  document.addEventListener('focusin', onIntroFocus);
   window.addEventListener('pagehide', unlockIntroScroll);
   // The last intro word finishes at 6.45s + .65s delay + .2s fade.
   // Schedule cleanup before setting up the animation so failures cannot trap scrolling.
@@ -81,7 +99,7 @@ if (!introMotion.matches) {
   let framePending = false;
 
   function updateScrollStory() {
-    if (!hasScrolled || !introComplete) return;
+    if (introMotion.matches || introShortScreen.matches || !hasScrolled || !introComplete) return;
     document.body.classList.add('story-has-scrolled');
     const stage = document.querySelector('.thinking-stage');
     const headerHeight = document.querySelector('.site-header').getBoundingClientRect().height;

@@ -1,8 +1,10 @@
 # BotSquared — FTC Team 22829
 
-Scroll-driven landing page using the supplied team photos and branding. Plain HTML, CSS, and JavaScript; no package installation required.
+Scroll-driven robotics website using the supplied team photos and branding. Plain HTML, CSS, and JavaScript; no package installation required.
 
-Run `npm run dev` and open http://127.0.0.1:5173. Run `npm run check` for JavaScript syntax checks.
+Run `npm run dev` and open http://127.0.0.1:5173. Run `npm run check` for JavaScript syntax checks, `npm test` for build and preview-server regression checks, and `npm run build` to generate the publishable site.
+
+Robot-rendering helper checks run with `python3 -m unittest discover -s scripts/tests -p 'test_*.py'`. These exercise encoder validation and cleanup without launching Blender or changing rendered assets.
 
 The page also works by opening `index.html` directly. It features a pinned robot-video scene, a three-chapter robot-building story, progressive text reveals, photo parallax, and a glass navigation bar with reading progress. Scrolling remains native; animation frames run only while scrolling or settling.
 
@@ -12,16 +14,18 @@ The opening scene uses `assets/robot-motion-black-right.mp4`, a pure-black robot
 
 The initial left-to-right movement receives 1.7 times the scroll distance per video second. The pinned scene is longer so the later turn keeps roughly its previous pace; the entrance distance stays the same across screen sizes.
 
-The About animation introduces the dots, reveals “Thinking” for one 2.2-second cycle, then shrinks into the upper left with “Innovating”. After another cycle, the dots and label fade out, leaving an info notice: “No AI was used; only visual effect”. The centered introduction stays pinned during its story. Its headline and first paragraph reveal automatically in a diagonal wave after the opening sequence. Scrolling brings in subsequent paragraphs as whole-block fades in the same position. Copy is local to `about.html`, with timing and scroll logic in `about.js`. Reduced motion and no JavaScript show the full copy in a readable linear layout.
+The About animation introduces the dots and “Thinking”, then shrinks into the upper left with “Innovating”. The dots and label then fade out, leaving an info notice: “No AI was used; only visual effect”. The centered introduction stays pinned during its story. Its headline and first paragraph reveal automatically in a diagonal wave after the opening sequence. Scrolling brings in subsequent paragraphs as whole-block fades in the same position. Copy is local to `about.html`, with timing and scroll logic in `about.js`. Reduced motion and no JavaScript show the full copy in a readable linear layout.
 
 Team, outreach, sponsor, and contact details are based on the supplied website source. Review these before publishing.
 
-The gallery’s “Meet the Team →” button and the Team navigation link open `team.html`. The supplied group photo leads the page, beside five department cards that fill its height. Each plus button expands a panel across the photo-and-cards area, showing the department’s members in the photo area while every department title and control stays in its original position. The same button or Escape closes it; pressing the button during closing reopens from its current size. Another department’s plus switches the members. The group photo stays rendered beneath the solid expanded surface, so closing reveals it continuously. Spotlight controls are disabled placeholders for a later feature. The roster uses the names, roles, and portraits from the original supplied website; members without portraits use initials. The cards stack below the photo on smaller screens, and JavaScript-free viewing retains the descriptions and full roster without inactive controls.
+The Robots collection links to DeCode, CDC 2025, and CDC 2026 detail pages. DeCode includes a scroll-driven timeline and competition results; without JavaScript, all results remain readable. Detail pages recover to readable content if their scripts fail to load. Reduced motion and viewports too short for pinned content use a linear layout.
+
+The gallery’s “Meet the Team →” button and the Team navigation link open `team.html`. The supplied group photo leads the page, beside five department cards that fill its height. Each plus button expands a panel across the photo-and-cards area, showing the department’s members in the photo area while every department title and control stays in its original position. The same button or Escape closes it; pressing the button during closing reopens from its current size. Another department’s plus switches the members. The group photo stays rendered beneath the solid expanded surface, so closing reveals it continuously. Spotlight controls highlight each department’s members in the group photo. The roster uses the names, roles, and portraits from the original supplied website; members without portraits use initials. The cards stack below the photo on smaller screens, and JavaScript-free viewing retains the descriptions and full roster without inactive controls.
 
 ## GitHub Pages
 
 The organization site repository is `BotSquared22829/botsquared22829.github.io` and its address is https://botsquared22829.github.io/.
 
-The `Publish website` workflow checks and builds each push to `main`, then publishes when the repository is public and Pages is configured to use GitHub Actions. `npm run build` produces `_site/` containing the landing page, About page, Team page, and their referenced assets. Content-based CSS and JavaScript URL versions prevent browsers from reusing stale code after updates. Local server code and robot rendering scripts are excluded from the published website.
+The `Publish website` workflow checks, tests, and builds each push to `main`, then publishes when the repository is public and Pages is configured to use GitHub Actions. `npm run build` produces `_site/` containing all seven HTML pages and their referenced assets. The build discovers page, stylesheet, and media dependencies, and fails on missing files before replacing a previous successful build. Content-based CSS and JavaScript URL versions prevent browsers from reusing stale code after updates. Local server code and robot rendering scripts are excluded from the published website.
 
 GitHub Free requires a public repository for Pages. In repository Settings → Pages, select **GitHub Actions** as the source. The workflow can also be run manually from the Actions tab.

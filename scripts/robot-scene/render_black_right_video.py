@@ -3,7 +3,7 @@ from pathlib import Path
 OUT=(Path(__file__).resolve().parents[2] / 'output' / 'robot-scene')
 sys.path.insert(0,str(Path(__file__).resolve().parent));from encode_frames import encode_frames
 s=bpy.context.scene;s.render.dither_intensity=0
-started=time.time(); frames=OUT/'black-right-clean-frames';frames.mkdir(exist_ok=True)
+started=time.time(); frames=OUT/'black-right-clean-frames';frames.mkdir(parents=True,exist_ok=True)
 
 # Verify every fully entered frame fits the camera before the expensive render.
 import numpy as np
@@ -29,8 +29,11 @@ try:
   if scene.frame_current==68:
    for f in range(69,81):shutil.copyfile(scene.render.frame_path(frame=68),scene.render.frame_path(frame=f))
  bpy.app.handlers.render_write.append(progress)
- bpy.ops.render.render(animation=True)
- bpy.app.handlers.render_write.remove(progress)
+ try:
+  result=bpy.ops.render.render(animation=True)
+  if 'FINISHED' not in result:raise RuntimeError('Frame rendering was cancelled')
+ finally:
+  bpy.app.handlers.render_write.remove(progress)
  paths=[Path(s.render.frame_path(frame=f)) for f in range(1,145)]
  assert all(p.exists() for p in paths)
  (OUT/'black-right-render-progress.json').write_text(json.dumps({'stage':'encoding','frames':192,'elapsed_seconds':round(time.time()-started,1)}))

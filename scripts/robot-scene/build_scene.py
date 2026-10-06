@@ -2,6 +2,7 @@ import bpy, math, json
 from mathutils import Vector, Matrix
 from pathlib import Path
 OUT=(Path(__file__).resolve().parents[2] / 'output' / 'robot-scene')
+OUT.mkdir(parents=True,exist_ok=True)
 scene=bpy.context.scene
 robot=list(scene.objects)
 meshes=[o for o in robot if o.type=='MESH']

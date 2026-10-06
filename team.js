@@ -4,9 +4,9 @@ const islands = [...document.querySelectorAll('.department-island')];
 const members = [...document.querySelectorAll('[data-member-department]')];
 const roster = document.querySelector('.member-grid');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let motionReduced = reducedMotion.matches;
 const surface = document.createElement('div');
 surface.className = 'department-surface';
-surface.setAttribute('role', 'region');
 surface.hidden = true;
 overview.prepend(surface);
 const contents = new Map();
@@ -103,7 +103,7 @@ function animateSurface(from, to) {
   // The background and contents share one clip, without scaling portraits or text.
   // Persist the destination before animating so completion cannot flash a stale frame.
   Object.assign(surface.style, to);
-  if (reducedMotion.matches || from.clipPath === to.clipPath) {
+  if (motionReduced || from.clipPath === to.clipPath) {
     settleSurface();
     return;
   }
@@ -125,7 +125,6 @@ function restoreOverview() {
   if (expandedIsland) resetIsland(expandedIsland);
   overview.classList.remove('has-expanded', 'is-open');
   surface.hidden = true;
-  surface.removeAttribute('aria-labelledby');
   expandedIsland = null;
   closing = false;
 }
@@ -153,7 +152,6 @@ function openIsland(island) {
   button.setAttribute('aria-expanded', 'true');
   button.setAttribute('aria-label', `Close ${island.querySelector('h2').textContent}`);
   overview.classList.add('has-expanded');
-  surface.setAttribute('aria-labelledby', island.querySelector('h2').id);
   surface.hidden = false;
   animateSurface(from, fullFrame());
 }
@@ -167,6 +165,11 @@ islands.forEach(island => {
   title.id = `${island.dataset.department}-title`;
   island.setAttribute('aria-labelledby', title.id);
   const content = island.querySelector('.department-content');
+  // The shared animation surface precedes the controls in DOM order. Give
+  // keyboard users a direct way into its scrollable content when it opens.
+  content.tabIndex = 0;
+  content.setAttribute('role', 'region');
+  content.setAttribute('aria-labelledby', title.id);
   const memberGrid = document.createElement('div');
   memberGrid.className = 'department-members';
   members.filter(member => member.dataset.memberDepartment === island.dataset.department).forEach(member => {
@@ -187,9 +190,15 @@ islands.forEach(island => {
   spotlight.disabled = !(island.dataset.spotlightPeople || '').split(/\s+/).some(person => spotlightRegions[person]);
   spotlight.setAttribute('aria-pressed', 'false');
   spotlight.addEventListener('click', () => toggleSpotlight(island));
-  expand.addEventListener('click', () => {
+  expand.addEventListener('click', event => {
     if (expandedIsland === island && !closing) closeIsland();
-    else openIsland(island);
+    else {
+      openIsland(island);
+      if (event.detail === 0) {
+        content.focus({ preventScroll: true });
+        content.scrollIntoView({ block: 'center', behavior: 'instant' });
+      }
+    }
   });
 });
 roster.hidden = true;
@@ -212,9 +221,6 @@ function updateLayout() {
 new ResizeObserver(updateLayout).observe(overview);
 window.addEventListener('resize', updateLayout);
 updateLayout();
-reducedMotion.addEventListener('change', () => {
-  if (reducedMotion.matches) settleSurface();
-});
 
 // Scroll rotates two adjacent faces of an invisible rectangular block.
 // The first and last portions hold each message still before the page continues.
@@ -225,7 +231,7 @@ let unityConnectionProgress = 0;
 
 function updateUnity() {
   unityFramePending = false;
-  if (reducedMotion.matches) return;
+  if (motionReduced) return;
   const headerHeight = document.querySelector('.site-header').getBoundingClientRect().height;
   const travel = Math.max(1, unity.offsetHeight - unityStage.offsetHeight);
   const progress = Math.max(0, Math.min(1, (headerHeight - unity.getBoundingClientRect().top) / travel));
@@ -239,17 +245,16 @@ function updateUnity() {
 }
 
 function layoutUnity() {
-  unity.classList.toggle('unity-scroll-ready', !reducedMotion.matches);
+  unity.classList.toggle('unity-scroll-ready', !motionReduced);
   updateUnity();
 }
 
 window.addEventListener('scroll', () => {
-  if (unityFramePending || reducedMotion.matches) return;
+  if (unityFramePending || motionReduced) return;
   unityFramePending = true;
   requestAnimationFrame(updateUnity);
 }, { passive: true });
 window.addEventListener('resize', layoutUnity, { passive: true });
-reducedMotion.addEventListener('change', layoutUnity);
 layoutUnity();
 
 // Separate particles become a network as the second face comes into view.
@@ -262,10 +267,11 @@ let networkFrame = null;
 let networkVisible = false;
 let networkTime = 0;
 let networkPreviousTime = null;
+let networkConnection = null;
 const networkPointer = { x: 0, y: 0, targetX: 0, targetY: 0, strength: 0, active: false };
 
 unityStage.addEventListener('pointermove', event => {
-  if (event.pointerType === 'touch' || reducedMotion.matches) return;
+  if (event.pointerType === 'touch' || motionReduced) return;
   const bounds = unityStage.getBoundingClientRect();
   networkPointer.targetX = event.clientX - bounds.left;
   networkPointer.targetY = event.clientY - bounds.top;
@@ -281,6 +287,7 @@ unityStage.addEventListener('pointercancel', () => { networkPointer.active = fal
 function layoutNetwork() {
   networkPointer.active = false;
   networkPointer.strength = 0;
+  networkConnection = null;
   const bounds = unityStage.getBoundingClientRect();
   networkWidth = bounds.width;
   networkHeight = bounds.height;
@@ -292,6 +299,7 @@ function layoutNetwork() {
   networkDots = Array.from({ length: columns * rows }, (_, index) => {
     const dot = document.createElementNS(svgNamespace, 'circle');
     dot.setAttribute('r', 1.5 + random(index + 80) * 1.4);
+    dot.setAttribute('opacity', '.65');
     return {
       element: dot,
       x: ((index % columns) + 0.2 + random(index + 1) * 0.6) / columns * networkWidth,
@@ -322,11 +330,16 @@ function layoutNetwork() {
 }
 
 function drawNetwork() {
-  const connected = reducedMotion.matches ? 1 : unityConnectionProgress;
-  const drift = reducedMotion.matches ? 0 : networkTime / 1000;
+  const connected = motionReduced ? 1 : unityConnectionProgress;
+  const connectionChanged = connected !== networkConnection;
+  if (connectionChanged) {
+    // Every dot shares this color; inherit it instead of rewriting each dot.
+    unityNetwork.setAttribute('fill', `rgb(${190 + connected * 65}, ${190 - connected * 90}, ${202 - connected * 87})`);
+  }
+  const drift = motionReduced ? 0 : networkTime / 1000;
   const restless = 1 - connected;
   const amplitude = Math.min(85, networkWidth * 0.16);
-  const cursorStrength = reducedMotion.matches ? 0 : networkPointer.strength;
+  const cursorStrength = motionReduced ? 0 : networkPointer.strength;
   const cursorRadius = Math.min(300, networkWidth * 0.7);
   const positions = networkDots.map(dot => {
     // Blend separate paths so scrolling changes energy without jumping phase.
@@ -344,21 +357,22 @@ function drawNetwork() {
     y = Math.max(5, Math.min(networkHeight - 5, y));
     dot.element.setAttribute('cx', x);
     dot.element.setAttribute('cy', y);
-    dot.element.setAttribute('fill', `rgb(${190 + connected * 65}, ${190 - connected * 90}, ${202 - connected * 87})`);
-    dot.element.setAttribute('opacity', '.65');
     return { x, y };
   });
   networkLinks.forEach((link, index) => {
     const from = positions[link.from];
     const to = positions[link.to];
-    const reveal = Math.max(0, Math.min(1, (connected - (index % 7) * 0.025) / 0.85));
     link.element.setAttribute('x1', from.x);
     link.element.setAttribute('y1', from.y);
     link.element.setAttribute('x2', to.x);
     link.element.setAttribute('y2', to.y);
-    link.element.setAttribute('opacity', reveal * 0.32);
-    link.element.setAttribute('stroke-dashoffset', 1 - reveal);
+    if (connectionChanged) {
+      const reveal = Math.max(0, Math.min(1, (connected - (index % 7) * 0.025) / 0.85));
+      link.element.setAttribute('opacity', reveal * 0.32);
+      link.element.setAttribute('stroke-dashoffset', 1 - reveal);
+    }
   });
+  networkConnection = connected;
 }
 
 function animateNetwork(time) {
@@ -377,11 +391,11 @@ function syncNetworkMotion() {
   if (networkFrame !== null) cancelAnimationFrame(networkFrame);
   networkFrame = null;
   networkPreviousTime = null;
-  if (!networkVisible || document.hidden || reducedMotion.matches) {
+  if (!networkVisible || document.hidden || motionReduced) {
     networkPointer.active = false;
     networkPointer.strength = 0;
   }
-  if (networkVisible && !document.hidden && !reducedMotion.matches) networkFrame = requestAnimationFrame(animateNetwork);
+  if (networkVisible && !document.hidden && !motionReduced) networkFrame = requestAnimationFrame(animateNetwork);
   else drawNetwork();
 }
 
@@ -391,5 +405,10 @@ new IntersectionObserver(([entry]) => {
   syncNetworkMotion();
 }).observe(unityStage);
 document.addEventListener('visibilitychange', syncNetworkMotion);
-reducedMotion.addEventListener('change', syncNetworkMotion);
+reducedMotion.addEventListener('change', event => {
+  motionReduced = event.matches;
+  if (motionReduced) settleSurface();
+  layoutUnity();
+  syncNetworkMotion();
+});
 layoutNetwork();

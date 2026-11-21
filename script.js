@@ -50,7 +50,7 @@ const heroVideo = document.querySelector('#hero-video');
 const heroTeamName = document.querySelector('.hero-team-name');
 const heroLearnMore = document.querySelector('.hero-learn-more');
 const heroCutout = document.querySelector('.hero-robot-cutout');
-const cutoutContext = heroCutout.getContext('2d', { willReadFrequently: true });
+let cutoutContext = heroCutout.getContext('2d', { willReadFrequently: true });
 let cutoutTime = -1;
 let displayedHeroTime = 0;
 let heroUnavailable = false;
@@ -86,8 +86,10 @@ function drawHeroCutout() {
     cutoutContext.putImageData(frame, 0, 0);
     cutoutTime = displayedHeroTime;
     heroCutout.parentElement.classList.add('cutout-ready');
-  } catch {
+  } catch (error) {
     // Keep the original video visible if the browser cannot read its pixels.
+    if (error.name === 'SecurityError') cutoutContext = null;
+    robotLeftEdge = null;
     heroCutout.parentElement.classList.remove('cutout-ready');
   }
 }
@@ -141,6 +143,16 @@ const videoTravelEnd = 67 / 24;
 const videoTravelWeight = 1.7;
 // The robot holds at the right edge through frame 80, then starts its turn.
 const videoSpinStart = 80 / 24;
+
+// Leftmost silhouette pixel in a 320px-wide copy of the clip, every six frames.
+// Local file previews can display the clip while denying canvas pixel access.
+const travelEdges = [0, 0, 0, 0, 13, 51, 88, 120, 148, 170, 185, 191];
+function recordedRobotEdge(time) {
+  const sample = Math.min(time * 24 / 6, travelEdges.length - 1);
+  const index = Math.floor(sample);
+  const next = travelEdges[Math.min(index + 1, travelEdges.length - 1)];
+  return (travelEdges[index] + (next - travelEdges[index]) * (sample - index)) / 320;
+}
 
 function startHeroVideo() {
   if (heroVideo.preload === 'auto') return;
@@ -236,7 +248,8 @@ function render(time) {
     hero.style.setProperty('--photo-y', `${(1 - entrance) * geometry.heroStageHeight * 0.48}px`);
     hero.style.setProperty('--hint-opacity', String(clamp(1 - entrance * 2)));
     // Reveal directly against the robot's silhouette as it moves across the name.
-    const revealEdge = geometry.videoLeft + (robotLeftEdge ?? 0) * geometry.videoWidth;
+    const edge = robotLeftEdge ?? recordedRobotEdge(displayedHeroTime);
+    const revealEdge = geometry.videoLeft + edge * geometry.videoWidth;
     const nameReveal = displayedHeroTime >= videoTravelEnd ? 1
       : clamp((revealEdge - geometry.nameLeft) / Math.max(1, geometry.nameWidth));
     const spinReveal = clamp((displayedHeroTime - videoSpinStart) / 0.75);

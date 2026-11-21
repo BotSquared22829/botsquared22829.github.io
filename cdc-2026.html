@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#000000">
-  <meta name="description" content="BotSquared's 2026 Cross-District Challenge robot.">
+  <meta name="description" content="Explore Fire Truck V5, BotSquared’s 2026 Cross-District Challenge robot, from its four-wheel chassis to its raised two-finger claw.">
   <title>CDC 2026 — BotSquared</title>
   <link rel="icon" href="assets/favicon.png" type="image/png">
   <link rel="stylesheet" href="style.css">
@@ -37,8 +37,50 @@
         <a class="cdc-scroll-indicator decode-scroll-indicator" href="#firetruck" aria-label="Scroll to reveal Fire Truck"><span class="decode-scroll-arrow" aria-hidden="true"></span><span>SCROLL</span></a>
       </div>
     </div>
+    <section class="v5-explorer" aria-labelledby="v5-title">
+      <p class="eyebrow">CDC 2026 · Robot V5</p>
+      <h2 id="v5-title">Inside Fire Truck</h2>
+      <p class="v5-instruction">Select a label to zoom in. Select it again to return to Overview, or drag it and let it spring back.</p>
+      <fieldset class="v5-console">
+        <legend class="sr-only">Fire Truck components</legend>
+        <div class="v5-stage">
+          <div class="v5-map">
+            <img src="assets/robot-cdc-2026-v5-cutout-1448.webp" srcset="assets/robot-cdc-2026-v5-cutout-640.webp 640w, assets/robot-cdc-2026-v5-cutout-1448.webp 1448w" sizes="(max-width: 600px) 100vw, min(105vw, 1448px)" width="1448" height="1086" loading="lazy" alt="Three-quarter view of Fire Truck V5 with its red claw raised above its blue fan housing and four-wheel chassis.">
+            <div class="v5-pin v5-pin-right" data-part="claw" style="--x:var(--claw-x); --y:var(--claw-y)">
+              <label class="v5-card" for="v5-claw"><strong>Claw</strong><span class="v5-description" id="v5-note-claw">The two red printed fingers close around an object. Their bent tips reach past its sides as the jaws close.</span></label>
+            </div>
+            <div class="v5-pin v5-pin-left" data-part="pivot" style="--x:var(--pivot-x); --y:var(--pivot-y)">
+              <label class="v5-card" for="v5-pivot"><strong>Claw servos</strong><span class="v5-description" id="v5-note-pivot">Two servos sit just below the fingers. Each turns a splined hub at the base of one jaw, opening or closing that side of the claw.</span></label>
+            </div>
+            <div class="v5-pin v5-pin-left" data-part="housing" style="--x:var(--housing-x); --y:var(--housing-y)">
+              <label class="v5-card" for="v5-housing"><strong>Fan housing</strong><span class="v5-description" id="v5-note-housing">The blue printed housing sits between the front wheels, with its rectangular opening facing up.</span></label>
+            </div>
+            <div class="v5-pin v5-pin-left" data-part="frame" style="--x:var(--frame-x); --y:var(--frame-y)">
+              <label class="v5-card" for="v5-frame"><strong>Chassis</strong><span class="v5-description" id="v5-note-frame">Perforated metal channels form the frame. The front crossmember joins the side rails and leaves room for the fan assembly above it.</span></label>
+            </div>
+            <div class="v5-pin v5-pin-right" data-part="wheels" style="--x:var(--wheels-x); --y:var(--wheels-y)">
+              <label class="v5-card" for="v5-wheels"><strong>Wheels</strong><span class="v5-description" id="v5-note-wheels">Four 96 mm Rhino wheels support Fire Truck. The black rubber tires meet the floor along either side of the chassis.</span></label>
+            </div>
+          </div>
+          <div class="v5-picker">
+            <span><input class="v5-radio" type="radio" name="v5-part" id="v5-overview" aria-labelledby="v5-tab-overview" checked><label id="v5-tab-overview" for="v5-overview">Overview</label></span>
+            <span><input class="v5-radio" type="radio" name="v5-part" id="v5-claw" aria-labelledby="v5-tab-claw" aria-describedby="v5-note-claw"><label id="v5-tab-claw" for="v5-claw">Claw</label></span>
+            <span><input class="v5-radio" type="radio" name="v5-part" id="v5-pivot" aria-labelledby="v5-tab-pivot" aria-describedby="v5-note-pivot"><label id="v5-tab-pivot" for="v5-pivot">Claw servos</label></span>
+            <span><input class="v5-radio" type="radio" name="v5-part" id="v5-housing" aria-labelledby="v5-tab-housing" aria-describedby="v5-note-housing"><label id="v5-tab-housing" for="v5-housing">Fan housing</label></span>
+            <span><input class="v5-radio" type="radio" name="v5-part" id="v5-frame" aria-labelledby="v5-tab-frame" aria-describedby="v5-note-frame"><label id="v5-tab-frame" for="v5-frame">Chassis</label></span>
+            <span><input class="v5-radio" type="radio" name="v5-part" id="v5-wheels" aria-labelledby="v5-tab-wheels" aria-describedby="v5-note-wheels"><label id="v5-tab-wheels" for="v5-wheels">Wheels</label></span>
+          </div>
+        </div>
+      </fieldset>
+    </section>
+    <section class="cdc-story cdc-evolution" aria-labelledby="evolution-title">
+      <h2 id="evolution-title">What changed in <span>2026</span></h2>
+      <p>Our 2025 Fire Truck rolled into our first competition on omni wheels, a white claw perched on its tall metal arm. That robot took second place. For 2026, we switched to four rubber Rhino wheels and tucked a 3D-printed fan housing between the front pair. The claw changed too. We drew two hooked fingers in CAD, gave each its own servo, and built a tool to tune how far each finger opens and closes. Our driver squeezes one trigger to open both fingers and releases it to grip. The same gamepad moves the arm and reverses the fan.</p>
+      <a class="hero-link" href="cdc-2025.html">Meet the 2025 Fire Truck <span aria-hidden="true">→</span></a>
+    </section>
   </main>
   <footer class="site-footer wrap"><a class="footer-brand" href="index.html">BotSquared <span>FTC 22829</span></a><a href="index.html#robots">Back to home <span aria-hidden="true">→</span></a></footer>
   <script src="cdc-2025.js" defer></script>
+  <script src="cdc-2026.js" defer></script>
 </body>
 </html>

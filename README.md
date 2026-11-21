@@ -34,7 +34,7 @@ The gallery’s “Meet the Team →” button and the Team navigation link open
 
 The organization site repository is `BotSquared22829/botsquared22829.github.io` and its address is https://botsquared22829.github.io/.
 
-The `Publish website` workflow checks, tests, and builds each push to `main`, then publishes when the repository is public and Pages is configured to use GitHub Actions. `npm run build` produces `_site/` containing all seven HTML pages and their referenced assets. The build discovers page, stylesheet, and media dependencies, and fails on missing files before replacing a previous successful build. Content-based CSS and JavaScript URL versions prevent browsers from reusing stale code after updates. Local server code and robot rendering scripts are excluded from the published website.
+The `Publish website` workflow checks, tests, and builds each push to `main`, then publishes when the repository is public and Pages is configured to use GitHub Actions. `npm run build` produces `_site/` containing all HTML pages and their referenced assets. The build discovers page, stylesheet, and media dependencies, and fails on missing files before replacing a previous successful build. Content-based CSS and JavaScript URL versions prevent browsers from reusing stale code after updates. Local server code and robot rendering scripts are excluded from the published website.
 
 GitHub Free requires a public repository for Pages. In repository Settings → Pages, select **GitHub Actions** as the source. The workflow can also be run manually from the Actions tab.
 

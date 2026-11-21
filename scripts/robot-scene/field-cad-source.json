@@ -1,0 +1,30 @@
+{
+  "source_page": "https://ftc-resources.firstinspires.org/ftc/field",
+  "download_url": "https://ftc-resources.firstinspires.org/ftc/field/field-cad-step",
+  "onshape_url": "https://cad.onshape.com/documents/a355e772e3d24813de7852ee/w/f106353168f1f92100b81259/e/95d1e1e442b4138cccaf2d73",
+  "version": "v26-27.2 (2026-09-15)",
+  "step_sha256": "05b35961c7df847741031f00fda73ddd068537f809e92a11b1cd59a94bcc8331",
+  "cadquery_version": "2.6.1",
+  "imported_units": "millimeters",
+  "gltf_units": "meters",
+  "source_up_axis": "Y",
+  "source_bounds_mm": [
+    [
+      -3191.510000081141,
+      -43.048287468362005,
+      -1823.561929337417
+    ],
+    [
+      3191.5099999188606,
+      1676.9151120359284,
+      1823.5619293374568
+    ]
+  ],
+  "source_dimensions_mm": [
+    6383.020000000001,
+    1719.9633995042905,
+    3647.123858674874
+  ],
+  "mesh_tolerance_mm": 0.35,
+  "glb_sha256": "c16cf9c6b03496296665ad17d323eb8b4ade06dc5bc13e92521f0880490c17e4"
+}

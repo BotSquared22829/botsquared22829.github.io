@@ -681,6 +681,46 @@ html.intro-scroll-locked, .intro-scroll-locked .about-thinking { overflow: hidde
 .intro-scroll-locked .about-scroll-hint > span, .story-has-scrolled .about-scroll-hint > span { animation-play-state: paused; }
 .story-scroll-ready .thinking-stage { height: 400dvh; }
 .story-scroll-ready .about-story-stage { position: sticky; top: var(--header); height: calc(100dvh - var(--header)); display: grid; align-items: center; overflow: clip; }
+.about-story-content { padding-block: 64px 80px; }
+.story-scroll-ready .about-story-content { padding-block: 24px 60px; }
+.about-story-content .streamed-copy { padding-block: 0; }
+.robot-story { width: min(500px, calc(100% - var(--gutter) * 2)); margin: 0 auto clamp(24px, 4vh, 40px); color: #a5a5ae; }
+.robot-story-media { position: relative; width: 100%; height: clamp(150px, 33svh, 290px); }
+.robot-story-media > img, .robot-story-media > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.story-scroll-ready .has-cad-video .robot-story-poster { opacity: 0; }
+.robot-story-video, .robot-story-sketch, .robot-story-build-start { opacity: 0; pointer-events: none; }
+.story-scroll-ready .robot-story[data-phase="sketch"] .robot-story-sketch { opacity: 1; }
+.story-scroll-ready .robot-story-media { animation: robot-sketch-reveal 1.4s var(--ease) both; }
+.story-scroll-ready .robot-story[data-phase="sketch"] .robot-story-poster { opacity: 0; }
+.story-scroll-ready .robot-story.has-cad-video .robot-story-sketch { opacity: var(--robot-sketch-opacity, 1); }
+.story-scroll-ready .robot-story.has-cad-video .robot-story-video { opacity: var(--robot-color-visible, 0); }
+.story-scroll-ready .robot-story.has-cad-video.is-build-intro .robot-story-build-start { opacity: var(--robot-color-visible, 0); }
+@keyframes robot-sketch-reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+.robot-story-steps { display: flex; justify-content: center; padding: 0; margin: 12px 0 0; list-style: none; font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
+.robot-story-steps li { display: flex; align-items: center; gap: 8px; color: #83838e; transition: color .4s ease; }
+.robot-story-steps li + li::before { content: ""; width: clamp(18px, 4vw, 40px); height: 1px; margin-inline: 12px; background: #34343c; transition: background .4s ease; }
+.robot-step-dot { width: 5px; height: 5px; border: 1px solid currentColor; border-radius: 50%; }
+.robot-story-steps [aria-current="step"] { color: var(--ink); }
+.robot-story-steps [aria-current="step"] .robot-step-dot { background: var(--red); border-color: var(--red); box-shadow: 0 0 12px #ff3b4840; }
+.robot-story-steps .is-complete .robot-step-dot { background: currentColor; }
+.robot-story-steps .is-complete + li::before { background: #9a3039; }
+@media (max-width: 600px) {
+  .robot-story { margin-bottom: 24px; }
+  .robot-story-media { height: clamp(115px, 23svh, 190px); }
+  .robot-story-steps { font-size: 9px; letter-spacing: .12em; }
+  .robot-story-steps li + li::before { margin-inline: 7px; }
+  .about-story-content .streamed-copy h1 { font-size: clamp(36px, 8.6vw, 48px); }
+  .about-story-content .streamed-copy .intro-lead { font-size: clamp(17px, 4.5vw, 20px); line-height: 1.55; }
+  .about-story-content .streamed-copy .story-paragraphs { margin-top: 24px; }
+}
+@media (max-height: 650px) and (min-height: 501px) {
+  .robot-story-media { height: 110px; }
+  .robot-story { margin-bottom: 18px; }
+  .story-scroll-ready .about-story-content { padding-block: 12px 48px; }
+  .about-story-content .streamed-copy h1 { font-size: clamp(32px, 5vw, 46px); }
+  .about-story-content .streamed-copy p, .about-story-content .streamed-copy .intro-lead { font-size: 16px; line-height: 1.45; }
+  .about-story-content .streamed-copy .story-paragraphs { margin-top: 18px; }
+}
 .thinking-sequence { position: absolute; left: 50%; top: var(--thinking-center-y); width: 320px; height: 120px; transform: translate(-50%, -50%); transform-origin: top left; animation: thinking-dock .85s var(--ease) 1.4s both; }
 .thinking-indicator { position: absolute; left: 100px; width: 120px; height: 120px; animation: thinking-appear .45s ease both, thinking-slide .6s var(--ease) .6s both, thinking-label-out .3s ease 4.8s forwards; }
 .thinking-label { position: absolute; left: 100px; top: 50%; width: 220px; transform: translateY(-50%); color: #b5b5bf; font-size: 40px; font-weight: 450; letter-spacing: -.02em; line-height: 1.2; }
@@ -778,4 +818,10 @@ html.intro-scroll-locked, .intro-scroll-locked .about-thinking { overflow: hidde
   .scroll-reveal-ready .story-paragraphs { display: block; }
   .scroll-reveal-ready .story-paragraphs p + p { margin-top: 24px; }
   .scroll-reveal-ready p .stream-word { filter: none; transform: none; }
+}
+@media (prefers-reduced-motion: reduce), (max-height: 500px) {
+  .about-story-content, .story-scroll-ready .about-story-content { padding-block: 40px 64px; }
+  .about-thinking .about-story-content .streamed-copy { padding-block: 0; }
+  .story-scroll-ready .robot-story .robot-story-sketch, .story-scroll-ready .robot-story .robot-story-video, .story-scroll-ready .robot-story .robot-story-build-start { display: none; }
+  .story-scroll-ready .robot-story[data-phase] .robot-story-poster { opacity: 1; }
 }

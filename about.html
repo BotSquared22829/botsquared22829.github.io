@@ -21,6 +21,7 @@
   <main id="main" aria-label="About BotSquared" tabindex="-1">
     <section class="thinking-stage" aria-labelledby="streamed-title">
     <div class="about-story-stage">
+    <!--
     <div class="thinking-sequence" role="img" aria-label="Thinking, then innovating animation concept. No AI was used; only visual effect.">
       <div class="thinking-indicator" aria-hidden="true">
         <span class="thinking-ball thinking-ball-center"></span>
@@ -33,6 +34,23 @@
         <span class="thinking-label-notice"><span class="notice-info" aria-hidden="true">i</span><span>No AI was used; only visual effect</span></span>
       </div>
     </div>
+    -->
+    <div class="about-story-content">
+    <figure class="robot-story" data-phase="compete" aria-label="Our CAD robot takes shape, from sketch to build to competition.">
+      <div class="robot-story-media" aria-hidden="true">
+        <img class="robot-story-poster" src="assets/about-robot-poster.png" width="960" height="600" alt="">
+        <video class="robot-story-video" src="assets/about-robot.mp4" poster="assets/about-robot-poster.png" width="960" height="600" preload="auto" muted playsinline disablepictureinpicture tabindex="-1"></video>
+        <img class="robot-story-build-start" src="assets/about-robot-build-start.png" width="960" height="600" alt="">
+        <img class="robot-story-sketch" src="assets/about-robot-sketch.png" width="960" height="600" alt="">
+      </div>
+      <figcaption>
+        <ol class="robot-story-steps" aria-label="Our process">
+          <li data-robot-step="sketch"><span class="robot-step-dot"></span>Sketch</li>
+          <li data-robot-step="build"><span class="robot-step-dot"></span>Build</li>
+          <li data-robot-step="compete"><span class="robot-step-dot"></span>Compete</li>
+        </ol>
+      </figcaption>
+    </figure>
     <article class="streamed-copy" aria-labelledby="streamed-title">
       <h1 id="streamed-title" data-stream>We’re <span class="gradient-text">BotSquared.</span></h1>
       <div class="story-paragraphs">
@@ -41,6 +59,7 @@
       <p data-stream>We still bring that same curiosity to everything we make. We share ideas, help each other improve, and keep finding reasons to try again. We’re proud of how far we’ve come, and excited for what we’ll build next.</p>
       </div>
     </article>
+    </div>
     <span class="scroll-hint about-scroll-hint" aria-hidden="true"><span></span> SCROLL</span>
     </div>
     </section>

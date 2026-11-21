@@ -2,7 +2,65 @@
 // All copy is local and editable in about.html.
 const introMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const introShortScreen = window.matchMedia('(max-height: 500px)');
+// Skip the opening pause while the thinking animation is commented out.
+const introDelay = document.querySelector('.thinking-sequence') ? 5.7 : 0;
+const robotStory = document.querySelector('.robot-story');
+const robotSteps = [...document.querySelectorAll('[data-robot-step]')];
+const robotPhases = ['sketch', 'build', 'compete'];
+const robotVideo = document.querySelector('.robot-story-video');
+// Frames 1–72 hold the outer plates clear, seat wheels/deck/launcher,
+// then close the side assemblies around the wheels, with a
+// completed-robot pause. Frames 73–120 turn it as the full-scale BIOBUZZ
+// field fades into the close camera view.
+const robotAssemblyEnd = 71 / 24;
+const robotLastFrame = 119 / 24;
+// Materialize the same exploded pose before any parts begin to assemble.
+const robotRevealStart = 0.76;
+const robotBuildStart = 1.16;
+let robotRequestedTime = introMotion.matches || introShortScreen.matches ? robotLastFrame : 0;
+
+function seekRobotFrame() {
+  if (robotVideo.readyState < 2 || robotVideo.seeking || !Number.isFinite(robotVideo.duration)) return;
+  const time = Math.min(robotRequestedTime, Math.max(0, robotVideo.duration - 1 / 24));
+  if (Math.abs(robotVideo.currentTime - time) > 1 / 48) robotVideo.currentTime = time;
+}
+
+robotVideo.addEventListener('loadeddata', () => {
+  robotStory.classList.add('has-cad-video');
+  seekRobotFrame();
+});
+robotVideo.addEventListener('seeked', seekRobotFrame);
+robotVideo.addEventListener('error', () => {
+  robotStory.classList.remove('has-cad-video');
+});
+
+function setRobotProgress(progress, animated = true) {
+  const index = Math.min(robotPhases.length - 1, Math.floor(progress));
+  robotStory.dataset.phase = robotPhases[index];
+  const reveal = Math.max(0, Math.min(1, (progress - robotRevealStart) / (robotBuildStart - robotRevealStart)));
+  const blend = animated ? reveal * reveal * (3 - 2 * reveal) : 1;
+  robotStory.style.setProperty('--robot-sketch-opacity', 1 - blend);
+  robotStory.style.setProperty('--robot-color-visible', blend > 0 ? 1 : 0);
+  // A matching still covers the decoder during the dissolve, including when
+  // reversing quickly from a later video frame back into the sketch.
+  robotStory.classList.toggle('is-build-intro', animated && progress <= robotBuildStart);
+  // Match each video segment to the scroll distance within its story paragraph.
+  // Retain only this latest target while the decoder finishes an earlier seek.
+  const build = Math.max(0, Math.min(1, (progress - robotBuildStart) / (2 - robotBuildStart)));
+  const compete = Math.max(0, Math.min(1, progress - 2));
+  robotRequestedTime = animated
+    ? build * robotAssemblyEnd + compete * (robotLastFrame - robotAssemblyEnd)
+    : robotLastFrame;
+  seekRobotFrame();
+  robotSteps.forEach((step, stepIndex) => {
+    step.classList.toggle('is-complete', animated && stepIndex < index);
+    if (animated && stepIndex === index) step.setAttribute('aria-current', 'step');
+    else step.removeAttribute('aria-current');
+  });
+}
+
 if (!introMotion.matches && !introShortScreen.matches) {
+  setRobotProgress(0);
   const scrollKeys = ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '];
   const preventIntroScroll = event => {
     if (event.type === 'keydown' && !scrollKeys.includes(event.key)) return;
@@ -29,9 +87,16 @@ if (!introMotion.matches && !introShortScreen.matches) {
     if (event.target.id === 'main') unlockIntroScroll();
   }
   function onIntroMotionChange(event) {
-    if (!event.matches) return;
+    if (!event.matches) {
+      if (!introMotion.matches && !introShortScreen.matches) {
+        if (!hasScrolled) setRobotProgress(0);
+        updateScrollStory();
+      }
+      return;
+    }
     unlockIntroScroll();
     introComplete = true;
+    setRobotProgress(2, false);
     // Returning to full motion must not restart the introductory text delays.
     groups.forEach(({ tokens }) => tokens.forEach(token => {
       token.style.animation = 'none';
@@ -44,9 +109,9 @@ if (!introMotion.matches && !introShortScreen.matches) {
   introShortScreen.addEventListener('change', onIntroMotionChange);
   document.addEventListener('focusin', onIntroFocus);
   window.addEventListener('pagehide', unlockIntroScroll);
-  // The last intro word finishes at 6.45s + .65s delay + .2s fade.
+  // The last intro word finishes 1.6s after the opening pause.
   // Schedule cleanup before setting up the animation so failures cannot trap scrolling.
-  window.setTimeout(unlockIntroScroll, 7300);
+  window.setTimeout(unlockIntroScroll, (introDelay + 1.6) * 1000);
 
   const groups = [];
   document.querySelectorAll('[data-stream]').forEach(element => {
@@ -84,7 +149,7 @@ if (!introMotion.matches && !introShortScreen.matches) {
         const x = (positions[index].left - left) / width;
         const y = (positions[index].top - top) / height;
         // The opening diagonal wave adapts to the actual text wrapping.
-        token.style.setProperty('--stream-delay', `${(isParagraph ? 6.45 : 5.7) + (x * 0.35 + y * 0.65) * 0.65}s`);
+        token.style.setProperty('--stream-delay', `${introDelay + (isParagraph ? 0.75 : 0) + (x * 0.35 + y * 0.65) * 0.65}s`);
       });
     });
   }
@@ -106,6 +171,7 @@ if (!introMotion.matches && !introShortScreen.matches) {
     const distance = Math.max(0, headerHeight - stage.getBoundingClientRect().top);
     const progress = Math.min(paragraphs.length - 0.001, distance / (window.innerHeight * 0.9));
     const active = Math.floor(progress);
+    setRobotProgress(progress);
     const fadeProgress = Math.min(1, (progress - active) / 0.62);
     paragraphs.forEach(({ element }, index) => {
       element.classList.toggle('is-revealed', index === active);
@@ -136,7 +202,7 @@ if (!introMotion.matches && !introShortScreen.matches) {
   window.setTimeout(() => {
     introComplete = true;
     updateScrollStory();
-  }, 5700);
+  }, introDelay * 1000);
   layOutReveal();
   document.fonts.ready.then(layOutReveal);
   window.addEventListener('resize', () => {

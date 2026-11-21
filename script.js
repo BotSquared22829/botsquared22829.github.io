@@ -52,23 +52,39 @@ const heroLearnMore = document.querySelector('.hero-learn-more');
 const heroCutout = document.querySelector('.hero-robot-cutout');
 const cutoutContext = heroCutout.getContext('2d', { willReadFrequently: true });
 let cutoutTime = -1;
+let displayedHeroTime = 0;
 let heroUnavailable = false;
 let robotLeftEdge = null;
 function drawHeroCutout() {
-  if (heroUnavailable || motionReduced || !cutoutContext || heroVideo.readyState < 2 || cutoutTime === heroVideo.currentTime) return;
+  if (!heroAnimated || heroVideo.readyState < 2 || heroVideo.seeking) return;
+  displayedHeroTime = heroVideo.currentTime;
+  heroCutout.parentElement.classList.add('video-frame-ready');
+  if (!cutoutContext) return;
+  // Preserve the silhouette at the render's native resolution before CSS scales it.
+  const width = heroVideo.videoWidth;
+  const height = heroVideo.videoHeight;
+  if (heroCutout.width !== width || heroCutout.height !== height) {
+    heroCutout.width = width;
+    heroCutout.height = height;
+    cutoutTime = -1;
+  }
+  if (cutoutTime === displayedHeroTime) return;
   try {
-    cutoutContext.drawImage(heroVideo, 0, 0, heroCutout.width, heroCutout.height);
-    const frame = cutoutContext.getImageData(0, 0, heroCutout.width, heroCutout.height);
-    let leftEdge = heroCutout.width;
+    cutoutContext.drawImage(heroVideo, 0, 0, width, height);
+    const frame = cutoutContext.getImageData(0, 0, width, height);
+    const pixels = frame.data;
+    let leftEdge = width;
     // The render uses pure black. Remove that backdrop so the robot can occlude text.
-    for (let i = 0; i < frame.data.length; i += 4) {
-      const brightness = Math.max(frame.data[i], frame.data[i + 1], frame.data[i + 2]);
-      frame.data[i + 3] = Math.min(255, brightness * 32);
-      if (brightness > 12) leftEdge = Math.min(leftEdge, (i / 4) % heroCutout.width);
+    for (let y = 0, i = 0; y < height; y++) {
+      for (let x = 0; x < width; x++, i += 4) {
+        const brightness = Math.max(pixels[i], pixels[i + 1], pixels[i + 2]);
+        if (brightness < 8) pixels[i + 3] = brightness * 32;
+        if (brightness > 12 && x < leftEdge) leftEdge = x;
+      }
     }
-    robotLeftEdge = leftEdge < heroCutout.width ? leftEdge / heroCutout.width : null;
+    robotLeftEdge = leftEdge < width ? leftEdge / width : null;
     cutoutContext.putImageData(frame, 0, 0);
-    cutoutTime = heroVideo.currentTime;
+    cutoutTime = displayedHeroTime;
     heroCutout.parentElement.classList.add('cutout-ready');
   } catch {
     // Keep the original video visible if the browser cannot read its pixels.
@@ -78,7 +94,7 @@ function drawHeroCutout() {
 function showHeroFallback() {
   if (heroUnavailable) return;
   heroUnavailable = true;
-  heroVideo.poster = 'assets/robot-motion-black-poster.png';
+  heroVideo.poster = 'assets/robot-motion-black-poster.webp';
   heroVideo.setAttribute('aria-label', 'BotSquared robot');
   heroVideo.parentElement.classList.remove('cutout-ready');
   configureMotion();
@@ -126,8 +142,14 @@ const videoTravelWeight = 1.7;
 // The robot holds at the right edge through frame 80, then starts its turn.
 const videoSpinStart = 80 / 24;
 
+function startHeroVideo() {
+  if (heroVideo.preload === 'auto') return;
+  heroVideo.preload = 'auto';
+  if (!heroVideo.readyState) heroVideo.load();
+}
+
 function seekHeroVideo() {
-  if (heroUnavailable || motionReduced || !Number.isFinite(heroVideo.duration) || heroVideo.readyState < 2 || heroVideo.seeking) return;
+  if (!heroAnimated || !Number.isFinite(heroVideo.duration) || heroVideo.readyState < 2 || heroVideo.seeking) return;
   // Keep only the latest scroll position while the decoder completes a seek.
   const lastFrame = Math.max(0, heroVideo.duration - 1 / 24);
   const travelEnd = Math.min(videoTravelEnd, lastFrame);
@@ -135,10 +157,12 @@ function seekHeroVideo() {
   const targetTime = weightedTime <= travelEnd * videoTravelWeight
     ? weightedTime / videoTravelWeight
     : travelEnd + weightedTime - travelEnd * videoTravelWeight;
-  if (Math.abs(heroVideo.currentTime - targetTime) > 1 / 48) heroVideo.currentTime = targetTime;
+  const frameTime = Math.round(targetTime * 24) / 24;
+  if (Math.abs(heroVideo.currentTime - frameTime) > 1 / 48) heroVideo.currentTime = frameTime;
 }
 heroVideo.addEventListener('loadedmetadata', requestRender);
 heroVideo.addEventListener('loadeddata', seekHeroVideo);
+heroVideo.addEventListener('loadeddata', requestRender);
 heroVideo.addEventListener('seeked', seekHeroVideo);
 heroVideo.addEventListener('seeked', requestRender);
 
@@ -179,6 +203,7 @@ function measure() {
     sections: sections.map(section => section.getBoundingClientRect().top + y),
     pageRange: Math.max(1, document.documentElement.scrollHeight - window.innerHeight),
   };
+  drawHeroCutout();
 }
 
 function requestRender() {
@@ -191,18 +216,19 @@ function render(time) {
   const delta = lastTime ? Math.min(time - lastTime, 64) : 16;
   lastTime = time;
   const smoothing = 1 - Math.exp(-delta / 75);
-  const targetHero = clamp((y + geometry.header - geometry.heroTop) / geometry.heroRange);
+  const heroDistance = y + geometry.header - geometry.heroTop;
+  const targetHero = clamp(heroDistance / geometry.heroRange);
   const targetRobot = clamp((y + geometry.header - geometry.robotTop) / geometry.robotRange);
   heroProgress += (targetHero - heroProgress) * smoothing;
   robotProgress += (targetRobot - robotProgress) * smoothing;
   root.style.setProperty('--read-progress', String(clamp(y / geometry.pageRange)));
 
-  if (!motionReduced) {
+  if (heroAnimated) {
+    // Use the entrance to buffer before the first scroll-driven video frame.
+    if (heroDistance > 1 && heroDistance < geometry.heroRange + geometry.heroStageHeight) startHeroVideo();
     videoProgress = clamp((heroProgress * geometry.heroRange - geometry.heroEntryRange) / (geometry.heroRange - geometry.heroEntryRange));
     seekHeroVideo();
-  }
 
-  if (heroAnimated) {
     const entrance = clamp(heroProgress * geometry.heroRange / geometry.heroEntryRange);
     hero.style.setProperty('--title-y', `${-entrance * 100}px`);
     hero.style.setProperty('--title-scale', String(1 - entrance * 0.06));
@@ -211,12 +237,12 @@ function render(time) {
     hero.style.setProperty('--hint-opacity', String(clamp(1 - entrance * 2)));
     // Reveal directly against the robot's silhouette as it moves across the name.
     const revealEdge = geometry.videoLeft + (robotLeftEdge ?? 0) * geometry.videoWidth;
-    const nameReveal = heroVideo.currentTime >= videoTravelEnd ? 1
+    const nameReveal = displayedHeroTime >= videoTravelEnd ? 1
       : clamp((revealEdge - geometry.nameLeft) / Math.max(1, geometry.nameWidth));
-    const spinReveal = clamp((heroVideo.currentTime - videoSpinStart) / 0.75);
+    const spinReveal = clamp((displayedHeroTime - videoSpinStart) / 0.75);
     const spinEase = spinReveal * spinReveal * (3 - 2 * spinReveal);
     // Let the number finish its reveal, then leave a short beat before the button.
-    const learnMoreReveal = clamp((heroVideo.currentTime - videoSpinStart - 0.95) / 0.65);
+    const learnMoreReveal = clamp((displayedHeroTime - videoSpinStart - 0.95) / 0.65);
     const learnMoreEase = learnMoreReveal * learnMoreReveal * (3 - 2 * learnMoreReveal);
     hero.style.setProperty('--name-mask', `${(1 - nameReveal) * 100}%`);
     hero.style.setProperty('--name-opacity', String(clamp(nameReveal * 4)));
@@ -259,16 +285,7 @@ function configureMotion() {
   heroAnimated = !motionReduced && !heroUnavailable;
   animated = !motionReduced && !shortScreen.matches;
   heroVideo.controls = motionReduced && !heroUnavailable;
-  if (!motionReduced && !heroUnavailable) {
-    heroVideo.pause();
-    if (heroVideo.preload !== 'auto') {
-      heroVideo.preload = 'auto';
-      heroVideo.load();
-    }
-  } else {
-    // Leave a still frame and native playback controls when scroll motion is disabled.
-    heroVideo.pause();
-  }
+  heroVideo.pause();
   root.classList.toggle('motion-ready', !motionReduced);
   root.classList.toggle('hero-motion', heroAnimated);
   heroContent.inert = false;

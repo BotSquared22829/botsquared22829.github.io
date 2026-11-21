@@ -147,7 +147,9 @@ function openIsland(island) {
   closing = false;
   expandedIsland = island;
   island.classList.add('is-expanded');
-  contents.get(island).hidden = false;
+  const content = contents.get(island);
+  content.querySelectorAll('img[loading="lazy"]').forEach(image => { image.loading = 'eager'; });
+  content.hidden = false;
   const button = island.querySelector('.department-expand');
   button.setAttribute('aria-expanded', 'true');
   button.setAttribute('aria-label', `Close ${island.querySelector('h2').textContent}`);
@@ -322,7 +324,7 @@ function layoutNetwork() {
         line.setAttribute('stroke-width', '.8');
         line.setAttribute('pathLength', '1');
         line.setAttribute('stroke-dasharray', '1');
-        networkLinks.push({ element: line, from: index, to: target });
+        networkLinks.push({ element: line, from: index, to: target, visible: false });
       });
   });
   unityNetwork.replaceChildren(...networkLinks.map(link => link.element), ...networkDots.map(dot => dot.element));
@@ -360,17 +362,19 @@ function drawNetwork() {
     return { x, y };
   });
   networkLinks.forEach((link, index) => {
+    if (connectionChanged) {
+      const reveal = Math.max(0, Math.min(1, (connected - (index % 7) * 0.025) / 0.85));
+      link.visible = reveal > 0;
+      link.element.setAttribute('opacity', reveal * 0.32);
+      link.element.setAttribute('stroke-dashoffset', 1 - reveal);
+    }
+    if (!link.visible) return;
     const from = positions[link.from];
     const to = positions[link.to];
     link.element.setAttribute('x1', from.x);
     link.element.setAttribute('y1', from.y);
     link.element.setAttribute('x2', to.x);
     link.element.setAttribute('y2', to.y);
-    if (connectionChanged) {
-      const reveal = Math.max(0, Math.min(1, (connected - (index % 7) * 0.025) / 0.85));
-      link.element.setAttribute('opacity', reveal * 0.32);
-      link.element.setAttribute('stroke-dashoffset', 1 - reveal);
-    }
   });
   networkConnection = connected;
 }

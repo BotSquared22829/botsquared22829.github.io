@@ -59,7 +59,8 @@ h2 { font-size: clamp(44px, 5.3vw, 78px); font-weight: 650; letter-spacing: -.05
 .hero-motion .hero-photo { position: absolute; inset: 0; width: 100%; max-width: none; height: 100%; margin: 0; transform: translate3d(0, var(--photo-y, 48svh), 0); border-radius: 0; background: transparent; z-index: 3; pointer-events: none; }
 .hero-motion .hero-photo video, .hero-motion .hero-robot-cutout { position: absolute; top: 50%; left: 50%; width: min(90%, 1280px, calc((100dvh - var(--header)) * 1.6)); height: auto; aspect-ratio: 16 / 9; transform: translate(-50%, -50%); }
 .hero-robot-cutout { display: none; }
-.hero-motion .hero-photo.cutout-ready video { opacity: 0; }
+.hero-motion .hero-photo video { opacity: 0; }
+.hero-motion .hero-photo.video-frame-ready:not(.cutout-ready) video { opacity: 1; }
 .hero-motion .cutout-ready .hero-robot-cutout { display: block; }
 .hero-identity { display: none; }
 .hero-motion .hero-identity { display: flex; flex-direction: column; align-items: flex-start; position: absolute; top: 50%; left: 50%; width: calc(var(--scene-unit, 1px) * 1280); padding-left: calc(var(--scene-unit, 1px) * 16); z-index: 2; pointer-events: none; transform: translate(-50%, -50%); }
@@ -687,14 +688,14 @@ html.intro-scroll-locked, .intro-scroll-locked .about-thinking { overflow: hidde
 .robot-story { width: min(500px, calc(100% - var(--gutter) * 2)); margin: 0 auto clamp(24px, 4vh, 40px); color: #a5a5ae; }
 .robot-story-media { position: relative; width: 100%; height: clamp(150px, 33svh, 290px); }
 .robot-story-media > img, .robot-story-media > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.story-scroll-ready .has-cad-video .robot-story-poster { opacity: 0; }
+.story-scroll-ready .robot-story .robot-story-poster { opacity: 0; }
 .robot-story-video, .robot-story-sketch, .robot-story-build-start { opacity: 0; pointer-events: none; }
-.story-scroll-ready .robot-story[data-phase="sketch"] .robot-story-sketch { opacity: 1; }
 .story-scroll-ready .robot-story-media { animation: robot-sketch-reveal 1.4s var(--ease) both; }
-.story-scroll-ready .robot-story[data-phase="sketch"] .robot-story-poster { opacity: 0; }
-.story-scroll-ready .robot-story.has-cad-video .robot-story-sketch { opacity: var(--robot-sketch-opacity, 1); }
+.story-scroll-ready .robot-story .robot-story-sketch { opacity: var(--robot-sketch-opacity, 1); }
 .story-scroll-ready .robot-story.has-cad-video .robot-story-video { opacity: var(--robot-color-visible, 0); }
-.story-scroll-ready .robot-story.has-cad-video.is-build-intro .robot-story-build-start { opacity: var(--robot-color-visible, 0); }
+.story-scroll-ready .robot-story:not(.has-cad-video) .robot-story-build-start { opacity: var(--robot-color-visible, 0); }
+.story-scroll-ready .robot-story.has-cad-error[data-phase="compete"] .robot-story-poster { opacity: 1; }
+.story-scroll-ready .robot-story.has-cad-error[data-phase="compete"] .robot-story-build-start { opacity: 0; }
 @keyframes robot-sketch-reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
 .robot-story-steps { display: flex; justify-content: center; padding: 0; margin: 12px 0 0; list-style: none; font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
 .robot-story-steps li { display: flex; align-items: center; gap: 8px; color: #83838e; transition: color .4s ease; }

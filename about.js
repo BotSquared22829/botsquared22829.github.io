@@ -17,21 +17,25 @@ const robotLastFrame = 119 / 24;
 // Materialize the same exploded pose before any parts begin to assemble.
 const robotRevealStart = 0.76;
 const robotBuildStart = 1.16;
-let robotRequestedTime = introMotion.matches || introShortScreen.matches ? robotLastFrame : 0;
+let robotRequestedTime = 0;
+let robotVideoStarted = false;
 
 function seekRobotFrame() {
-  if (robotVideo.readyState < 2 || robotVideo.seeking || !Number.isFinite(robotVideo.duration)) return;
+  if (introMotion.matches || introShortScreen.matches || robotVideo.readyState < 2 || robotVideo.seeking || !Number.isFinite(robotVideo.duration)) return;
   const time = Math.min(robotRequestedTime, Math.max(0, robotVideo.duration - 1 / 24));
-  if (Math.abs(robotVideo.currentTime - time) > 1 / 48) robotVideo.currentTime = time;
+  if (Math.abs(robotVideo.currentTime - time) > 1 / 48) {
+    robotVideo.currentTime = time;
+  } else if (!robotStory.classList.contains('is-build-intro')) {
+    // Keep the still in view until the decoder catches up to the requested pose.
+    robotStory.classList.add('has-cad-video');
+  }
 }
 
-robotVideo.addEventListener('loadeddata', () => {
-  robotStory.classList.add('has-cad-video');
-  seekRobotFrame();
-});
+robotVideo.addEventListener('loadeddata', seekRobotFrame);
 robotVideo.addEventListener('seeked', seekRobotFrame);
 robotVideo.addEventListener('error', () => {
   robotStory.classList.remove('has-cad-video');
+  robotStory.classList.add('has-cad-error');
 });
 
 function setRobotProgress(progress, animated = true) {
@@ -43,14 +47,21 @@ function setRobotProgress(progress, animated = true) {
   robotStory.style.setProperty('--robot-color-visible', blend > 0 ? 1 : 0);
   // A matching still covers the decoder during the dissolve, including when
   // reversing quickly from a later video frame back into the sketch.
-  robotStory.classList.toggle('is-build-intro', animated && progress <= robotBuildStart);
+  const inBuildIntro = animated && progress <= robotBuildStart;
+  robotStory.classList.toggle('is-build-intro', inBuildIntro);
+  if (inBuildIntro || !animated) robotStory.classList.remove('has-cad-video');
   // Match each video segment to the scroll distance within its story paragraph.
   // Retain only this latest target while the decoder finishes an earlier seek.
   const build = Math.max(0, Math.min(1, (progress - robotBuildStart) / (2 - robotBuildStart)));
   const compete = Math.max(0, Math.min(1, progress - 2));
-  robotRequestedTime = animated
-    ? build * robotAssemblyEnd + compete * (robotLastFrame - robotAssemblyEnd)
-    : robotLastFrame;
+  const targetTime = build * robotAssemblyEnd + compete * (robotLastFrame - robotAssemblyEnd);
+  robotRequestedTime = Math.round(targetTime * 24) / 24;
+  // Buffer while the sketch is visible, before the first build frame is needed.
+  if (animated && !robotVideoStarted && progress >= 0.12) {
+    robotVideoStarted = true;
+    robotVideo.preload = 'auto';
+    robotVideo.src = 'assets/about-robot-web.mp4';
+  }
   seekRobotFrame();
   robotSteps.forEach((step, stepIndex) => {
     step.classList.toggle('is-complete', animated && stepIndex < index);

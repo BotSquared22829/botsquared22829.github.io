@@ -8,6 +8,7 @@
   <title>Outreach — BotSquared</title>
   <link rel="icon" href="assets/favicon.png" type="image/png">
   <link rel="stylesheet" href="style.css">
+  <script src="assets/outreach-map/cameras.js" defer></script>
   <script src="outreach.js" defer></script>
 </head>
 <body>
@@ -19,21 +20,85 @@
     </div>
   </header>
   <main id="main" class="outreach-content" tabindex="-1">
-    <section class="outreach-hero" aria-labelledby="outreach-title">
-      <div class="outreach-hero-inner wrap">
-        <div class="outreach-intro">
-          <h1 id="outreach-title">Outreach</h1>
-          <p>We bring robotics into classrooms, share what we learn with other FTC teams, and raise funds for our next build.</p>
-          <a class="button" href="#community-projects">Explore our projects</a>
+    <section class="outreach-journey" aria-labelledby="outreach-title">
+      <div class="journey-stage">
+        <div class="journey-media">
+          <div class="journey-plane">
+            <video class="journey-video" muted playsinline preload="none" aria-hidden="true"></video>
+            <div class="journey-routes" hidden>
+              <svg class="journey-lines" aria-hidden="true" preserveAspectRatio="none"></svg>
+              <div class="journey-pins" role="group" aria-label="Competition venues"></div>
+            </div>
+          </div>
         </div>
-        <div class="outreach-collage">
-          <img class="outreach-hero-photo" src="assets/outreach-classroom.jpg" width="1210" height="908" alt="BotSquared students gathered around their robot in a classroom" fetchpriority="high">
-          <img class="outreach-hero-inset" src="assets/fundraising-krispy-kreme.webp" width="864" height="648" alt="">
+        <a class="journey-skip" href="#community-projects">Skip to community projects <span aria-hidden="true">↓</span></a>
+        <div class="journey-chapters">
+          <article id="journey-school" class="journey-chapter" data-stops="school overhead" data-nav="Killarney">
+            <picture class="journey-still"><source width="768" height="896" media="(max-width: 760px), (max-aspect-ratio: 1/1)" srcset="assets/outreach-map/school-portrait.webp"><img width="1440" height="900" src="assets/outreach-map/school.webp" alt="Street-level view of Killarney Secondary’s main entrance and teal tower"></picture>
+            <div class="journey-copy">
+              <p class="journey-place">Killarney Secondary School</p>
+              <h1 id="outreach-title">Outreach</h1>
+              <p>We’re BotSquared, FTC Team 22829. Our robotics community starts here in Vancouver.</p>
+              <a class="journey-team" href="team.html"><img src="assets/team-group-640.webp" width="640" height="480" alt="BotSquared with our competition robot"><span>Meet the team <span aria-hidden="true">↗</span></span></a>
+            </div>
+            <span class="journey-cue">Scroll to the next view <span aria-hidden="true">↓</span></span>
+          </article>
+          <article id="journey-sister" class="journey-chapter" data-stops="sister" data-nav="KNOTbot">
+            <picture class="journey-still"><source width="768" height="896" media="(max-width: 760px), (max-aspect-ratio: 1/1)" srcset="assets/outreach-map/sister-portrait.webp"><img width="1440" height="900" src="assets/outreach-map/sister.webp" alt="Killarney Secondary and the surrounding neighbourhood from above" loading="lazy"></picture>
+            <div class="journey-copy">
+              <p class="journey-place">Our school community</p>
+              <h2>Meet KNOTbot.</h2>
+              <p>Two FTC teams call Killarney home. Our sister team, KNOTbot #22817, builds and competes alongside us.</p>
+              <a class="journey-partner" href="https://22817-knotbot.github.io/"><img src="assets/outreach-map/knotbot.webp" width="72" height="72" alt=""><span>Visit KNOTbot <span aria-hidden="true">↗</span></span></a>
+            </div>
+          </article>
+          <article id="journey-metro" class="journey-chapter" data-stops="metro" data-nav="Metro Vancouver">
+            <picture class="journey-still"><source width="768" height="896" media="(max-width: 760px), (max-aspect-ratio: 1/1)" srcset="assets/outreach-map/metro-portrait.webp"><img width="1440" height="900" src="assets/outreach-map/metro.webp" alt="Metro Vancouver, the Fraser River, Surrey, and Port Moody from above" loading="lazy"></picture>
+            <div class="journey-copy">
+              <p class="journey-place">Metro Vancouver</p>
+              <h2>Where we compete.</h2>
+              <div class="journey-venues" data-origin="-123.0441757,49.2255942">
+                <section data-venue="Surrey" data-lon="-122.8843961" data-lat="49.1752903" id="venue-surrey">
+                  <h3>L.A. Matheson Secondary</h3>
+                  <ul>
+                    <li><a href="https://ftc-events.firstinspires.org/2025/CABCSUQ/awards">L.A. Matheson Qualifier <span aria-hidden="true">↗</span></a><small>December 2025 · Reach Award</small></li>
+                    <li><a href="https://ftc-events.firstinspires.org/2025/CABCCMP/rankings">BC Championship <span aria-hidden="true">↗</span></a><small>February 2026 · Sixth alliance captain</small></li>
+                  </ul>
+                </section>
+                <section data-venue="Port Moody" data-lon="-122.8674185" data-lat="49.2739719" id="venue-port-moody">
+                  <h3>Port Moody Secondary</h3>
+                  <ul>
+                    <li><a href="https://ftc-events.firstinspires.org/2025/CABCPMQ/awards">Port Moody Qualifier <span aria-hidden="true">↗</span></a><small>January 2026 · Reach Award and finalist alliance</small></li>
+                  </ul>
+                </section>
+              </div>
+            </div>
+          </article>
+          <article id="journey-canada" class="journey-chapter" data-stops="canada" data-nav="Canada">
+            <picture class="journey-still"><source width="768" height="896" media="(max-width: 760px), (max-aspect-ratio: 1/1)" srcset="assets/outreach-map/canada-portrait.webp"><img width="1440" height="900" src="assets/outreach-map/canada.webp" alt="Canada in a continental satellite view of North America" loading="lazy"></picture>
+            <div class="journey-copy">
+              <p class="journey-place">Across Canada</p>
+              <h2>FTC News Canada.</h2>
+              <p>We represent FTC News Canada, sharing stories from the Canadian FIRST Tech Challenge community.</p>
+              <a class="journey-partner" href="https://www.instagram.com/news.ftc.ca/"><img src="assets/outreach-map/ftc-news.webp" width="72" height="72" alt=""><span>Follow FTC News Canada <span aria-hidden="true">↗</span></span></a>
+            </div>
+          </article>
+          <article id="journey-world" class="journey-chapter" data-stops="world" data-nav="World">
+            <picture class="journey-still"><source width="768" height="896" media="(max-width: 760px), (max-aspect-ratio: 1/1)" srcset="assets/outreach-map/world-portrait.webp"><img width="1440" height="900" src="assets/outreach-map/world.webp" alt="The full Earth with North America facing the camera" loading="lazy"></picture>
+            <div class="journey-copy">
+              <p class="journey-place">Around the world</p>
+              <h2>Let’s connect.</h2>
+              <p>Planning a STEM event or looking for another team to build with? We’d love to hear from you.</p>
+              <a class="journey-action" href="#outreach-contact">Get in touch <span aria-hidden="true">↗</span></a>
+            </div>
+          </article>
         </div>
+        <nav class="journey-nav" aria-label="Outreach journey chapters" hidden></nav>
       </div>
     </section>
+    <details class="journey-credits wrap"><summary>Imagery credits</summary><p>Contains information licensed under the <a href="https://opendata.vancouver.ca/pages/licence/">Open Government Licence – Vancouver</a> (2022 aerial photography and 2009 building footprints). The opening view uses <a href="https://commons.wikimedia.org/wiki/File:Killarney_Secondary_School_southwest_entrance.jpg">entrance photography by Arnold C</a>, projected onto a reconstruction of the entrance pictured on <a href="https://www.vsb.bc.ca/killarney">Killarney Secondary’s website</a>. Contains modified Copernicus Sentinel data (2024). Regional imagery courtesy of NASA GIBS / MODIS Terra. Globe imagery by <a href="https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/">NASA Earth Observatory</a>.</p></details>
 
-    <section id="community-projects" class="outreach-projects wrap" aria-labelledby="outreach-projects-title">
+    <section tabindex="-1" id="community-projects" class="outreach-projects wrap" aria-labelledby="outreach-projects-title">
       <h2 id="outreach-projects-title">Community projects</h2>
       <div class="outreach-project-tabs" role="tablist" aria-labelledby="outreach-projects-title" hidden>
         <button type="button" role="tab" id="outreach-tab-stem" aria-controls="outreach-stem">STEM Buddies</button>
@@ -91,7 +156,7 @@
       </div>
     </section>
 
-    <section class="outreach-contact wrap" aria-labelledby="outreach-contact-title">
+    <section id="outreach-contact" class="outreach-contact wrap" aria-labelledby="outreach-contact-title">
       <div>
         <h2 id="outreach-contact-title">Let’s work together.</h2>
         <p>Have a STEM event or a team project in mind? Tell us about it.</p>

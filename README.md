@@ -30,6 +30,45 @@ The Robots collection links to DeCode, CDC 2025, and CDC 2026 detail pages. DeCo
 
 The gallery’s “Meet the Team →” button and the Team navigation link open `team.html`. The supplied group photo leads the page, beside five department cards that fill its height. Each plus button expands a panel across the photo-and-cards area, showing the department’s members in the photo area while every department title and control stays in its original position. The same button or Escape closes it; pressing the button during closing reopens from its current size. Another department’s plus switches the members. The group photo stays rendered beneath the solid expanded surface, so closing reveals it continuously. Spotlight controls highlight each department’s members in the group photo. The roster uses the names, roles, and portraits from the original supplied website; members without portraits use initials. The cards stack below the photo on smaller screens, and JavaScript-free viewing retains the descriptions and full roster without inactive controls.
 
+## Editing the Outreach journey
+
+The opening of `outreach.html` starts at eye height facing Killarney Secondary’s main entrance. A wheel gesture, vertical swipe, or arrow key moves one stop at a time. The camera rises above the school, passes KNOTbot and Metro Vancouver, then pulls back to Canada and Earth. Each view holds until the next gesture. Chapter links jump directly to their views. The chapter copy, logos, links, venue pins, and event results are HTML. The media and camera projections are packaged with the site, including for direct file previews.
+
+- **Change a caption or photo.** Edit the `.journey-copy` inside the relevant chapter. For example, add `<p>Our next workshop is open to other FTC teams.</p>` to that block when the team has a workshop to announce. Use regular `<img src="assets/…" alt="…">` or `<a href="…">` elements for photos and links. The same content appears in the animated and static layouts.
+- **Add an event at an existing venue.** Add one `<li>` to that venue’s list, following the entry below. Both Surrey events already share the L.A. Matheson Secondary pin. A new event there needs only a list entry.
+
+  ```html
+  <li>
+    <a href="https://ftc-events.firstinspires.org/2025/CABCSUQ/awards">L.A. Matheson Qualifier ↗</a>
+    <small>December 2025 · Reach Award</small>
+  </li>
+  ```
+
+- **Add a chapter overlay.** Duplicate a journey article in scroll order and give it a unique ID. Set its navigation label in `data-nav` and list its camera positions in `data-stops`, separated by spaces. Replace the copy. Reuse the nearest chapter’s still for the static layout. The navigation link is generated automatically.
+- **Add a competition venue.** Duplicate a section inside `.journey-venues`. Set a unique HTML `id`, the short pin label in `data-venue`, and WGS84 decimal degrees in `data-lon` and `data-lat`. Update the heading and event list. The website projects the endpoint and draws its arc from Killarney in both camera framings. Check that a new destination lies within the Metro Vancouver frame. Routes appear in section order at the Metro Vancouver stop. Select a pin to show its events. Add Cross-District events when the team confirms attendance and the host campus.
+- **Set the camera stops.** Chapters follow article order. The bundled camera positions are `school`, `overhead`, `sister`, `metro`, `canada`, and `world`. A chapter link opens the first position listed on its article.
+
+### Rebuilding the geographic media
+
+The checked-in media are ready for the normal site build. To change the camera or imagery, use Blender, FFmpeg, and a Python environment with Pillow, NumPy, and Rasterio. Choose a fresh temporary directory for a changed render so previously rendered frames cannot be mistaken for new ones.
+
+```sh
+map_work=$(mktemp -d)
+python scripts/outreach-map/prepare_imagery.py "$map_work"
+for framing in wide portrait; do
+  blender -b --python-exit-code 1 -P scripts/outreach-map/render.py -- "$map_work" "$map_work/frames" --format "$framing" --stills
+done
+# Review the five stills in each framing before rendering the full flight.
+for framing in wide portrait; do
+  blender -b --python-exit-code 1 -P scripts/outreach-map/render.py -- "$map_work" "$map_work/frames" --format "$framing"
+done
+python scripts/outreach-map/package_media.py "$map_work/frames"
+```
+
+The opening camera stands about 1.7 m above the modeled ground. Its position is estimated from the entrance on [Killarney’s website](https://www.vsb.bc.ca/killarney) and [Arnold C’s southwest entrance photograph](https://commons.wikimedia.org/wiki/File:Killarney_Secondary_School_southwest_entrance.jpg). The renderer projects the photograph onto the entrance surfaces and uses the City’s [building footprints and roof heights](https://opendata.vancouver.ca/explore/dataset/building-footprints-2009/) for the rise. The camera joins the overhead flight at frame 156. To review the lift separately, add `--first 0 --last 156 --step 26` to a render command. `--metal` enables rendering on a compatible Mac GPU.
+
+The school and venue coordinates use the [BC Address Geocoder](https://geocoder.api.gov.bc.ca/). The source layers are the City of Vancouver’s 2022 orthophotos, two August 2024 Copernicus Sentinel-2 acquisitions, NASA GIBS regional imagery, and NASA Earth Observatory’s July Blue Marble. The renderer exports the held Metro Vancouver camera matrix and the campus position throughout the opening. Keep both camera exports paired with their matching MP4s. Each MP4 contains a 60 fps outward flight followed by the same camera samples in reverse. The video plays between adjacent camera stops in the requested direction. Input during that move is discarded, including the momentum tail of a trackpad gesture. The school pin tracks the displayed video frame, and the venue blips appear during the Metro Vancouver hold. Chapter stills support the static layout and initial poster. Recheck the school, route endpoints, and Earth framing on desktop and mobile after changing the flight.
+
 ## GitHub Pages
 
 The organization site repository is `BotSquared22829/botsquared22829.github.io` and its address is https://botsquared22829.github.io/.

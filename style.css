@@ -345,10 +345,12 @@ nav.simple-navigation a[aria-current="page"], nav.simple-navigation a[aria-curre
 .journey-video { display: block; }
 .journey-routes, .journey-pins { pointer-events: none; }
 .journey-lines { overflow: visible; }
-.journey-lines path { fill: none; stroke: #f5f9fb; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linecap: round; filter: drop-shadow(0px 1px 2px #000); }
-.journey-lines path { visibility: hidden; }
+.journey-lines path { visibility: hidden; fill: none; stroke: #f5f9fb; stroke-width: 2; stroke-linecap: round; filter: drop-shadow(0px 1px 2px #000); }
 .journey-routes.at-venues .journey-lines path { visibility: visible; animation: journey-draw-route .55s ease-out backwards; animation-delay: var(--route-delay); }
-@keyframes journey-draw-route { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes journey-draw-route {
+  from { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  to { stroke-dasharray: 1; stroke-dashoffset: 0; }
+}
 .journey-pin {
   position: absolute; display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
   transform: translate(-50%, -50%); color: white; border: 0; background: transparent;

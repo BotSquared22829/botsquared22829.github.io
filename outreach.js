@@ -179,7 +179,6 @@ const venueRoutes = venues.map((venue, index) => {
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.style.setProperty('--route-delay', index * 120 + 'ms');
   path.setAttribute('pathLength', '1');
-  path.setAttribute('stroke-dasharray', '1');
   lines.append(path);
   const pin = makePin(venue.dataset.venue, false);
   pin.setAttribute('aria-controls', venue.id);

@@ -53,9 +53,10 @@ function localFile(reference, parent) {
 export async function buildSite(directory = root) {
   const documentRoot = await realpath(directory);
   const output = path.join(documentRoot, '_site');
-  const pages = (await readdir(documentRoot)).filter(file => file.endsWith('.html')).sort();
+  const entries = await readdir(documentRoot);
+  const pages = entries.filter(file => file.endsWith('.html')).sort();
   if (!pages.includes('index.html')) throw new Error('The website needs index.html');
-  const files = new Set(pages);
+  const files = new Set([...pages, ...entries.filter(file => file === 'robots.txt' || file === 'sitemap.xml')]);
   const documents = new Map();
   const codeVersions = new Map();
   // Walk references before replacing the previous build, including nested CSS assets.

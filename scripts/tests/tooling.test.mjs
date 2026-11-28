@@ -37,23 +37,29 @@ async function preview(t, files) {
   return { root, server };
 }
 
-test('build includes all pages and follows actual HTML, CSS, srcset and runtime assets', async t => {
+test('build includes all pages and search files and follows referenced assets', async t => {
   const root = await fixture(t, {
     'index.html': `<link href='style.css?theme=dark#top'><script src=app.js></script><img src='assets/a.png?v=1' srcset="assets/a.png 1x, assets/b.png 2x"><img srcset="data:image/png;base64,abc 1x, assets/c.png 2x"><img srcset="assets/d.png, assets/e.png" data-src="not-loaded.png"><a href='/other.html#story'>Next</a>`,
     'other.html': '<main id="story">Story</main>',
+    'robots.txt': 'Sitemap: https://example.com/sitemap.xml\n',
+    'sitemap.xml': '<urlset/>\n',
     'style.css': `@import "assets/nested.css"; .hero { background: url('assets/a.png?v=2'); }`,
     'assets/nested.css': '.nested { background: url("b.png"); }',
     'app.js': 'const image = "assets/c.png";',
     'assets/a.png': 'a', 'assets/b.png': 'b', 'assets/c.png': 'c',
     'assets/d.png': 'd', 'assets/e.png': 'e',
-    'assets/unused.png': 'unused', 'server.mjs': 'local tool',
+    'assets/unused.png': 'unused', 'server.mjs': 'local tool', 'notes.txt': 'local notes',
   });
   assert.deepEqual(await buildSite(root), { pages: 2, assets: 6 });
   const html = await readFile(path.join(root, '_site/index.html'), 'utf8');
   assert.match(html, /style\.css\?theme=dark&amp;v=[a-f0-9]{12}#top/);
   assert.match(html, /src=app\.js\?v=[a-f0-9]{12}/);
+  assert.equal(await readFile(path.join(root, '_site/robots.txt'), 'utf8'), 'Sitemap: https://example.com/sitemap.xml\n');
+  assert.equal(await readFile(path.join(root, '_site/sitemap.xml'), 'utf8'), '<urlset/>\n');
   assert.deepEqual((await readdir(path.join(root, '_site/assets'))).sort(), ['a.png', 'b.png', 'c.png', 'd.png', 'e.png', 'nested.css']);
-  assert(!(await readdir(path.join(root, '_site'))).includes('server.mjs'));
+  const published = await readdir(path.join(root, '_site'));
+  assert(!published.includes('server.mjs'));
+  assert(!published.includes('notes.txt'));
 });
 
 test('missing references fail without replacing the previous successful build', async t => {

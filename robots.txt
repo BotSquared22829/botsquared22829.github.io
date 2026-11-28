@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://botsquared22829.github.io/sitemap.xml

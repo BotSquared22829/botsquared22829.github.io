@@ -230,14 +230,18 @@ const awardChapters = [...awards.querySelectorAll('.award-chapter')];
 const awardsMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let awardsPinned = false;
 let awardsFramePending = false;
+let activeAward = -1;
 
 function updateAwards() {
   const headerHeight = document.querySelector('.site-header').getBoundingClientRect().height;
   const travel = Math.max(1, awards.offsetHeight - awardsStage.offsetHeight);
   const progress = Math.max(0, Math.min(1, (headerHeight - awards.getBoundingClientRect().top) / travel));
-  const active = Math.min(awardChapters.length - 1, Math.floor(progress * awardChapters.length));
+  const active = awardsPinned ? Math.min(awardChapters.length - 1, Math.floor(progress * awardChapters.length)) : -1;
+  if (active === activeAward) return;
+  activeAward = active;
   awardChapters.forEach((chapter, index) => {
-    chapter.classList.toggle('is-active', awardsPinned && index === active);
+    chapter.style.setProperty('--award-date-shift', awardsPinned ? active - index : 0);
+    chapter.classList.toggle('is-active', index === active);
     if (awardsPinned && index !== active) chapter.setAttribute('aria-hidden', 'true');
     else chapter.removeAttribute('aria-hidden');
   });

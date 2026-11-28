@@ -1069,14 +1069,35 @@ html.intro-scroll-locked, .intro-scroll-locked .about-thinking { overflow: hidde
 .award-chapter { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(32px, 5vw, 80px); align-items: start; min-width: 0; }
 .award-chapter img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; object-position: center; border-radius: 16px; }
 .award-copy { min-width: 0; align-self: stretch; }
-.award-dates { --date-size: 42px; --date-gap: 8px; --year-gap: 9px; display: flex; align-items: flex-end; gap: var(--date-gap); isolation: isolate; margin-block: 35px 12px; font-weight: 600; }
-.award-dates time { position: relative; display: grid; justify-items: center; gap: var(--year-gap); color: var(--muted); }
-.award-dates time::before, .award-dates small::after { content: ""; position: absolute; left: 0; width: var(--date-size); height: var(--date-size); box-sizing: border-box; border: 1px solid var(--line); border-radius: 8px; pointer-events: none; }
-.award-dates time::before { bottom: 0; background: #1c1c22; }
-.award-dates small { position: relative; z-index: 1; width: 100%; text-align: center; font-size: 11px; line-height: 1; font-variant-numeric: tabular-nums; }
-.award-dates small::after { top: calc(100% + var(--year-gap)); border-color: currentColor; background: #35151c; }
-.award-dates time span { position: relative; z-index: 2; display: grid; place-items: center; width: var(--date-size); height: var(--date-size); font-size: 12px; white-space: nowrap; }
-.award-dates time[aria-current="step"] { color: var(--red); }
+.award-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  margin-block: clamp(8px, 2svh, 22px) clamp(14px, 2.5svh, 24px);
+  font-variant-numeric: tabular-nums;
+}
+.award-date-number {
+  display: block;
+  overflow: clip;
+  font-size: clamp(44px, 4.6vw, 68px);
+  font-weight: 550;
+  line-height: 1;
+  letter-spacing: -.07em;
+}
+.award-date-number > span { display: block; }
+.award-date-month {
+  display: grid;
+  gap: 4px;
+  border-inline-start: 1px solid var(--red);
+  padding-inline-start: 13px;
+  color: var(--ink);
+  font-size: .72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.award-date-month small { color: var(--muted); font-size: .72rem; font-weight: 450; letter-spacing: .06em; }
 .award-copy h3 { font-size: clamp(28px, 3vw, 44px); font-weight: 650; line-height: 1.1; letter-spacing: -.04em; }
 .award-copy p { margin-top: 12px; color: var(--muted); font-size: clamp(16px, 1.4vw, 19px); line-height: 1.7; }
 .awards-scroll-ready { height: 355svh; }
@@ -1086,16 +1107,21 @@ html.intro-scroll-locked, .intro-scroll-locked .about-thinking { overflow: hidde
 .awards-scroll-ready .award-chapter.is-active { visibility: visible; pointer-events: auto; transition-delay: 0s; }
 .awards-scroll-ready .award-chapter img { opacity: 0; transition: opacity .65s ease-in-out; }
 .awards-scroll-ready .award-chapter.is-active img { opacity: 1; }
-.awards-scroll-ready .award-dates { visibility: hidden; }
-.awards-scroll-ready .award-chapter.is-active .award-dates { visibility: visible; }
-.awards-scroll-ready .award-dates small { transform: translateX(calc(var(--award-date-shift, 0) * (100% + var(--date-gap)))); transition: transform .16s ease-out; }
+.awards-scroll-ready .award-copy { visibility: hidden; }
+.awards-scroll-ready .award-chapter.is-active .award-copy { visibility: visible; }
+.awards-scroll-ready .award-chapter.is-active.is-changing-date .award-date-number > span { animation: award-date-roll .45s var(--ease) both; }
+.awards-scroll-ready .award-chapter.is-active.is-changing-date .award-date-month { animation: award-month-reveal .35s ease both; }
+@keyframes award-date-roll {
+  from { opacity: .25; transform: translateY(calc(var(--award-date-direction) * 70%)); }
+}
+@keyframes award-month-reveal { from { opacity: .25; } }
 .awards-scroll-ready .award-copy :is(h3, p) { opacity: 0; transition: opacity .2s ease-out; }
 .awards-scroll-ready .award-chapter.is-active .award-copy :is(h3, p) { opacity: 1; transition: opacity .35s ease-in .22s; }
 @media (max-width: 760px) {
   .awards-stage { gap: 24px; padding-block: 28px; }
   .award-chapter { grid-template-columns: 1fr; grid-template-rows: max-content 1fr; gap: 22px; }
   .award-chapter img { max-height: 26svh; }
-  .award-dates { margin-block: 15px 12px; }
+  .award-date { margin-block: 0 12px; }
   .award-copy h3 { font-size: 28px; }
   .award-copy p { margin-top: 12px; font-size: 16px; line-height: 1.6; }
 }

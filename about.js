@@ -227,6 +227,7 @@ if (!introMotion.matches && !introShortScreen.matches) {
 const awards = document.querySelector('.about-awards');
 const awardsStage = awards.querySelector('.awards-stage');
 const awardChapters = [...awards.querySelectorAll('.award-chapter')];
+const awardDates = awardChapters.map(chapter => chapter.querySelector('.award-date').dateTime);
 const awardsMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let awardsPinned = false;
 let awardsFramePending = false;
@@ -238,10 +239,12 @@ function updateAwards() {
   const progress = Math.max(0, Math.min(1, (headerHeight - awards.getBoundingClientRect().top) / travel));
   const active = awardsPinned ? Math.min(awardChapters.length - 1, Math.floor(progress * awardChapters.length)) : -1;
   if (active === activeAward) return;
+  const dateChanged = active >= 0 && activeAward >= 0 && awardDates[activeAward] !== awardDates[active];
+  if (dateChanged) awards.style.setProperty('--award-date-direction', active < activeAward ? -1 : 1);
   activeAward = active;
   awardChapters.forEach((chapter, index) => {
-    chapter.style.setProperty('--award-date-shift', awardsPinned ? active - index : 0);
     chapter.classList.toggle('is-active', index === active);
+    chapter.classList.toggle('is-changing-date', index === active && dateChanged);
     if (awardsPinned && index !== active) chapter.setAttribute('aria-hidden', 'true');
     else chapter.removeAttribute('aria-hidden');
   });
